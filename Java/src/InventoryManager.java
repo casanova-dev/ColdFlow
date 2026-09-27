@@ -3,48 +3,56 @@ package coldflow;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InventoryManager {
+public class InventoryManager implements InventoryOperations {
 
     private final FEFOHeap inventory;
 
     public InventoryManager() {
-
         inventory = new FEFOHeap();
     }
 
     // =========================================================
-    // ADD A BATCH
+    // CO2 - INVENTORY OPERATIONS INTERFACE IMPLEMENTATION
     // =========================================================
 
+    @Override
     public void addBatch(Batch batch) {
-
         inventory.addBatch(batch);
     }
 
-    // =========================================================
-    // GET EARLIEST-EXPIRING BATCH
-    // =========================================================
+    @Override
+    public void removeBatch(String batchId) {
+        inventory.removeByBatchId(batchId);
+    }
 
-    public Batch getNextBatch() {
-
+    @Override
+    public Batch getNextDispatchBatch() {
         return inventory.peekNextBatch();
     }
 
-    // =========================================================
-    // DISPATCH EARLIEST-EXPIRING BATCH - FEFO
-    // =========================================================
+    @Override
+    public void displayInventory() {
+        inventory.displayInventory();
+    }
 
-    public Batch dispatchNextBatch() {
-
-        return inventory.dispatchNextBatch();
+    @Override
+    public int getInventoryCount() {
+        return inventory.size();
     }
 
     // =========================================================
-    // NUMBER OF BATCHES
+    // EXISTING METHODS
     // =========================================================
 
-    public int getBatchCount() {
+    public Batch getNextBatch() {
+        return inventory.peekNextBatch();
+    }
 
+    public Batch dispatchNextBatch() {
+        return inventory.dispatchNextBatch();
+    }
+
+    public int getBatchCount() {
         return inventory.size();
     }
 
@@ -53,7 +61,6 @@ public class InventoryManager {
     // =========================================================
 
     public boolean isEmpty() {
-
         return inventory.isEmpty();
     }
 
@@ -62,7 +69,6 @@ public class InventoryManager {
     // =========================================================
 
     public Batch searchBatch(String batchId) {
-
         return inventory.findByBatchId(batchId);
     }
 
@@ -70,12 +76,8 @@ public class InventoryManager {
     // SEARCH BATCHES BY PRODUCT NAME
     // =========================================================
 
-    public List<Batch> searchProduct(
-            String productName) {
-
-        return inventory.findByProductName(
-                productName
-        );
+    public List<Batch> searchProduct(String productName) {
+        return inventory.findByProductName(productName);
     }
 
     // =========================================================
@@ -96,12 +98,8 @@ public class InventoryManager {
     // DELETE BATCH BY ID
     // =========================================================
 
-    public Batch deleteBatch(
-            String batchId) {
-
-        return inventory.removeByBatchId(
-                batchId
-        );
+    public Batch deleteBatch(String batchId) {
+        return inventory.removeByBatchId(batchId);
     }
 
     // =========================================================
@@ -109,7 +107,6 @@ public class InventoryManager {
     // =========================================================
 
     public List<Batch> getAllBatches() {
-
         return inventory.getSnapshot();
     }
 
@@ -117,14 +114,11 @@ public class InventoryManager {
     // GET BATCHES STORED IN A PARTICULAR ZONE
     // =========================================================
 
-    public List<Batch> getBatchesByZone(
-            String zoneName) {
+    public List<Batch> getBatchesByZone(String zoneName) {
 
-        List<Batch> result =
-                new ArrayList<>();
+        List<Batch> result = new ArrayList<>();
 
-        for (Batch batch :
-                inventory.getSnapshot()) {
+        for (Batch batch : inventory.getSnapshot()) {
 
             if (batch.getZoneName()
                     .equalsIgnoreCase(zoneName)) {
@@ -140,8 +134,7 @@ public class InventoryManager {
     // DISPLAY BATCHES BELONGING TO A PARTICULAR ZONE
     // =========================================================
 
-    public void displayZoneInventory(
-            String zoneName) {
+    public void displayZoneInventory(String zoneName) {
 
         List<Batch> batches =
                 getBatchesByZone(zoneName);
@@ -162,17 +155,7 @@ public class InventoryManager {
         }
 
         for (Batch batch : batches) {
-
             System.out.println(batch);
         }
-    }
-
-    // =========================================================
-    // DISPLAY COMPLETE INVENTORY
-    // =========================================================
-
-    public void displayInventory() {
-
-        inventory.displayInventory();
     }
 }
