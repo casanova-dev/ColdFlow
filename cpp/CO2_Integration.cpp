@@ -4,7 +4,7 @@
 using namespace std;
 
 // ===============================================================
-// Samarth - Final CO2 Integration and Demonstration
+// Samyak - Final CO2 Integration and Demonstration
 // ColdFlow CO2: Choose suitable type of linked list for applications
 // ===============================================================
 // This file integrates all three linked list solutions:
