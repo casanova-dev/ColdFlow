@@ -1,91 +1,96 @@
 #include <iostream>
 #include <cmath>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <GL/glut.h>
 
 // ===================================================================
-// ColdFlow - OpenGL Warehouse 3D Visualization
+// ColdFlow - OpenGL Warehouse 3D Visualization (CGL CO2)
 // ===================================================================
 //
-// REQUIREMENT: Computer Graphics CO1 - OpenGL Implementation
+// REQUIREMENT: Computer Graphics CO2 - Geometric Transformations
+// "Solve real time problems using geometric transformations."
 //
-// This module demonstrates:
-// - OpenGL graphics primitives (GL_QUADS, GL_LINES, GL_TRIANGLES)
-// - 3D coordinate transformations (translation, rotation, scaling)
-// - Vertex-based geometry construction
-// - Real-time rendering pipeline
-// - Warehouse zone visualization with color differentiation
-// - Temperature status display
+// This module implements real-time geometric transformations:
+// - TRANSLATION: Move warehouse using W/S/A/D keys (Samyak Bhalerao)
+// - SCALING: Zoom warehouse using +/- keys (Sarthak Korde)
+// - ROTATION: Rotate warehouse using Q/E keys (Zaki Haque)
+// - INTEGRATION: Zone selection & testing (Samarth Tayde)
 //
 // ===================================================================
 
-// Global variables
-GLFWwindow* window = nullptr;
+// Global variables for window and display
 int windowWidth = 1400;
 int windowHeight = 900;
-float rotationAngle = 0.0f;
-float zoomLevel = 1.0f;
+int selectedZone = 0;  // 0 = warehouse, 1-6 = individual zones
+
+// ===================================================================
+// SAMYAK - CO2 TRANSLATION
+// ===================================================================
+// Purpose: Move the complete warehouse in real time.
+// Real-world problem: Navigate and position warehouse in viewport.
+// Implementation: glTranslatef(translateX, translateY, 0) moves entire scene.
+// ===================================================================
+
+float translateX = 0.0f;  // Horizontal translation (left/right)
+float translateY = 0.0f;  // Vertical translation (up/down)
+
+// ===================================================================
+// SARTHAK - CO2 SCALING
+// ===================================================================
+// Purpose: Zoom warehouse uniformly while preserving proportions.
+// Real-world problem: Inspect warehouse detail or get overview.
+// Implementation: glScalef(scaleValue, scaleValue, scaleValue) zooms uniformly.
+// Minimum scale: 0.4 prevents warehouse from disappearing.
+// ===================================================================
+
+float scaleValue = 1.0f;     // Uniform scaling factor
+const float MIN_SCALE = 0.4f; // Minimum zoom limit
+const float MAX_SCALE = 3.0f; // Maximum zoom limit
+
+// ===================================================================
+// ZAKI - CO2 ROTATION
+// ===================================================================
+// Purpose: Rotate warehouse around Z-axis for viewing from different angles.
+// Real-world problem: Inspect warehouse 360° without moving camera.
+// Implementation: glRotatef(rotationAngle, 0, 0, 1) rotates around Z.
+// Matrix isolation using glPushMatrix()/glPopMatrix() protects text/UI.
+// ===================================================================
+
+float rotationAngle = 0.0f;  // Rotation angle in degrees around Z-axis
 
 // Temperature data for visual feedback
 struct ZoneStatus {
-    float x, y, z;           // Position
+    float x, y, z;            // Position
     float width, height, depth; // Dimensions
-    float temperature;       // Current temperature
-    float targetTemperature; // Target temperature
-    float r, g, b;          // Color (RGB)
-    const char* name;       // Zone name
+    float temperature;         // Current temperature
+    float targetTemperature;   // Target temperature
+    float r, g, b;            // Color (RGB)
+    const char* name;         // Zone name
 };
 
-// ===================================================================
-// OPENGL HELPER FUNCTIONS
-// ===================================================================
-
-// Initialize OpenGL settings
-void initOpenGL() {
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_COLOR_MATERIAL);
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-
-    glClearColor(0.1f, 0.1f, 0.15f, 1.0f);  // Dark blue background
-
-    glMatrixMode(GL_PROJECTION);
-
-    // Replace gluPerspective with GLM
-    glm::mat4 projection = glm::perspective(
-        glm::radians(45.0f),
-        (float)windowWidth / (float)windowHeight,
-        0.1f,
-        100.0f
-    );
-
-    glLoadMatrixf(glm::value_ptr(projection));
-
-    glMatrixMode(GL_MODELVIEW);
-}
+// Six warehouse zones
+ZoneStatus zones[6] = {
+    {-6, 1, 0, 3.0f, 4.0f, 3.0f, -18.5f, -20.0f, 0.0f, 0.3f, 1.0f, "FREEZER (-20C)"},
+    {0, 1, 0, 3.0f, 4.0f, 3.0f, 4.2f, 4.0f, 0.0f, 0.8f, 0.2f, "CHILLER (4C)"},
+    {6, 1, 0, 3.0f, 4.0f, 3.0f, 24.8f, 25.0f, 1.0f, 0.5f, 0.0f, "AMBIENT (25C)"},
+    {-6, 1, -4, 3.0f, 4.0f, 3.0f, -19.0f, -20.0f, 0.1f, 0.2f, 0.9f, "DEEP FREEZE"},
+    {0, 1, -4, 3.0f, 4.0f, 3.0f, 3.8f, 4.0f, 0.1f, 0.9f, 0.1f, "COLD STORAGE"},
+    {6, 1, -4, 3.0f, 4.0f, 3.0f, 25.2f, 25.0f, 1.0f, 0.6f, 0.1f, "DRY STORAGE"}
+};
 
 // ===================================================================
 // GEOMETRY DRAWING FUNCTIONS
 // ===================================================================
 
 // Draw a cube/box (for storage zones)
-// Each zone is a rectangular box drawn using GL_QUADS
-// - FREEZER ZONE: Blue box (low temp)
-// - CHILLER ZONE: Green box (medium temp)
-// - AMBIENT ZONE: Red box (room temp)
 void drawCube(float x, float y, float z,
               float width, float height, float depth,
               float r, float g, float b) {
 
     glPushMatrix();
     glTranslatef(x, y, z);
-
     glColor3f(r, g, b);
 
-    // Front face (GL_QUADS primitive)
+    // Front face
     glBegin(GL_QUADS);
     glVertex3f(-width/2, -height/2, depth/2);
     glVertex3f(width/2, -height/2, depth/2);
@@ -137,39 +142,32 @@ void drawCube(float x, float y, float z,
 }
 
 // Draw storage containers/boxes on shelves
-// Uses GL_QUADS for rectangular container geometry
 void drawContainer(float x, float y, float z,
                    float width, float height, float depth,
                    float r, float g, float b, float intensity) {
 
-    // Apply intensity based on temperature status
     glColor3f(r * intensity, g * intensity, b * intensity);
-
     glPushMatrix();
     glTranslatef(x, y, z);
 
     // Simplified cube for containers
     glBegin(GL_QUADS);
-
     // Front
     glVertex3f(0, 0, depth);
     glVertex3f(width, 0, depth);
     glVertex3f(width, height, depth);
     glVertex3f(0, height, depth);
-
     // Back
     glVertex3f(0, 0, 0);
     glVertex3f(0, height, 0);
     glVertex3f(width, height, 0);
     glVertex3f(width, 0, 0);
-
     glEnd();
 
     glPopMatrix();
 }
 
-// Draw warehouse floor (base plane)
-// Using GL_QUADS for a large rectangular floor
+// Draw warehouse floor
 void drawFloor(float size) {
     glColor3f(0.3f, 0.3f, 0.35f);
 
@@ -194,8 +192,7 @@ void drawFloor(float size) {
     glEnd();
 }
 
-// Draw warehouse walls (boundaries)
-// Using GL_QUADS and GL_LINES
+// Draw warehouse walls
 void drawWalls(float size) {
     glColor3f(0.2f, 0.2f, 0.25f);
 
@@ -216,12 +213,11 @@ void drawWalls(float size) {
     glEnd();
 }
 
-// Draw shelving racks (multiple GL_LINES for structure)
+// Draw shelving racks
 void drawShelf(float x, float y, float z,
                float width, float depth, float height) {
 
     glColor3f(0.6f, 0.6f, 0.6f);
-
     glBegin(GL_LINES);
 
     // Vertical supports
@@ -253,7 +249,7 @@ void drawShelf(float x, float y, float z,
     glEnd();
 }
 
-// Draw temperature indicator (thermometer symbol using GL_LINES and GL_TRIANGLES)
+// Draw temperature indicator
 void drawTemperatureIndicator(float x, float y, float z,
                               float temp, float target) {
 
@@ -268,13 +264,13 @@ void drawTemperatureIndicator(float x, float y, float z,
         glColor3f(0.0f, 1.0f, 0.0f);  // Green = normal
     }
 
-    // Draw indicator pole (GL_LINES)
+    // Draw indicator pole
     glBegin(GL_LINES);
     glVertex3f(x, y, z);
     glVertex3f(x, y + 1.0f, z);
     glEnd();
 
-    // Draw indicator bulb (GL_TRIANGLES for pyramid)
+    // Draw indicator bulb
     glBegin(GL_TRIANGLES);
     glVertex3f(x, y - 0.2f, z);
     glVertex3f(x - 0.15f, y, z);
@@ -283,207 +279,342 @@ void drawTemperatureIndicator(float x, float y, float z,
 }
 
 // ===================================================================
-// SCENE RENDERING
+// TEXT RENDERING (NOT AFFECTED BY TRANSFORMATIONS)
 // ===================================================================
 
-void renderScene() {
+void drawText(float x, float y, const char* text) {
+    glRasterPos2f(x, y);
+    while (*text) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *text++);
+    }
+}
+
+// ===================================================================
+// WAREHOUSE RENDERING WITH ZONE SELECTION
+// ===================================================================
+
+void renderWarehouse() {
+    // Draw warehouse floor and walls
+    drawFloor(12.0f);
+    drawWalls(12.0f);
+
+    // SAMARTH - CO2 INTEGRATION: Draw all six zones
+    for (int i = 0; i < 6; i++) {
+        float localScale = 1.0f;
+        
+        // SAMARTH - CO2 INTEGRATION: Zone selection emphasis
+        // If this zone is selected, apply local scaling for visual emphasis
+        if (selectedZone == i + 1) {
+            localScale = 1.2f;  // Emphasize selected zone
+        }
+
+        glPushMatrix();
+        glTranslatef(zones[i].x, zones[i].y, zones[i].z);
+        glScalef(localScale, localScale, localScale);
+
+        // Draw zone cube
+        drawCube(0, 0, 0, zones[i].width, zones[i].height, zones[i].depth,
+                 zones[i].r, zones[i].g, zones[i].b);
+
+        // Draw shelves
+        drawShelf(-1.5f, -1, -1.5f, zones[i].width, zones[i].depth, zones[i].height);
+
+        // Draw containers
+        drawContainer(-0.5f, 0.5f, -0.5f,
+                      1.5f, 1.5f, 1.0f,
+                      zones[i].r, zones[i].g, zones[i].b, 0.9f);
+
+        drawContainer(0.5f, 0.5f, -0.5f,
+                      1.5f, 1.5f, 1.0f,
+                      zones[i].r, zones[i].g, zones[i].b, 0.85f);
+
+        // Draw temperature indicator
+        drawTemperatureIndicator(0, 2.5f, 0, zones[i].temperature, zones[i].targetTemperature);
+
+        glPopMatrix();
+    }
+}
+
+// ===================================================================
+// DISPLAY CALLBACK
+// ===================================================================
+
+void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    // Camera position
-    glm::mat4 view = glm::lookAt(
-        glm::vec3(0.0f, 8.0f, 15.0f),  // Camera position
-        glm::vec3(0.0f, 2.0f, 0.0f),   // Look at
-        glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector
-    );
-
-    glLoadMatrixf(glm::value_ptr(view));
-
-    // Apply rotation for interaction
-    glRotatef(rotationAngle, 0, 1, 0);
-
-    // Apply zoom
-    glScalef(1.0f/zoomLevel, 1.0f/zoomLevel, 1.0f/zoomLevel);
-
-    // Draw warehouse floor
-    drawFloor(12.0f);
-
-    // Draw walls
-    drawWalls(12.0f);
+    // Camera position (3D perspective view)
+    gluLookAt(0.0f, 8.0f, 15.0f,   // Camera position
+              0.0f, 2.0f, 0.0f,    // Look at
+              0.0f, 1.0f, 0.0f);   // Up vector
 
     // ===================================================================
-    // FREEZER ZONE (Left side)
+    // SAMYAK - CO2 TRANSLATION
     // ===================================================================
-    // Zone characteristics:
-    // - Color: BLUE (cold temperature)
-    // - Position: Left (-6, 1, 0)
-    // - Temperature: -20°C
-
-    drawCube(-6, 1, 0, 3.0f, 4.0f, 3.0f,
-             0.0f, 0.3f, 1.0f);  // GL_QUADS
-
-    drawShelf(-7.5f, 0, -1.5f,
-              3.0f, 3.0f, 4.0f);
-
-    drawContainer(-6.5f, 0.5f, -0.5f,
-                  1.5f, 1.5f, 1.0f,
-                  0.0f, 0.3f, 1.0f, 0.9f);
-
-    drawContainer(-5.5f, 0.5f, -0.5f,
-                  1.5f, 1.5f, 1.0f,
-                  0.0f, 0.3f, 1.0f, 0.85f);
-
-    drawTemperatureIndicator(-6, 5, 0, -18.5f, -20.0f);
+    // Apply translation transformation first
+    // glTranslatef(translateX, translateY, 0) moves entire warehouse
+    // translateX and translateY modified by W/S/A/D keys in keyboard()
+    // ===================================================================
+    glTranslatef(translateX, translateY, 0.0f);
 
     // ===================================================================
-    // CHILLER ZONE (Center)
+    // ZAKI - CO2 ROTATION
     // ===================================================================
-    // Zone characteristics:
-    // - Color: GREEN (medium cold)
-    // - Position: Center (0, 1, 0)
-    // - Temperature: 4°C
-
-    drawCube(0, 1, 0, 3.0f, 4.0f, 3.0f,
-             0.0f, 0.8f, 0.2f);  // GL_QUADS
-
-    drawShelf(-1.5f, 0, -1.5f,
-              3.0f, 3.0f, 4.0f);
-
-    drawContainer(-0.5f, 0.5f, -0.5f,
-                  1.5f, 1.5f, 1.0f,
-                  0.0f, 0.8f, 0.2f, 0.9f);
-
-    drawContainer(0.5f, 0.5f, -0.5f,
-                  1.5f, 1.5f, 1.0f,
-                  0.0f, 0.8f, 0.2f, 0.85f);
-
-    drawTemperatureIndicator(0, 5, 0, 4.2f, 4.0f);
+    // Apply rotation transformation (around Z-axis)
+    // glRotatef(rotationAngle, 0, 0, 1) rotates warehouse 360°
+    // Q key: decrease rotationAngle (counter-clockwise)
+    // E key: increase rotationAngle (clockwise)
+    // Rotation preserves warehouse proportions and zone relationships
+    // ===================================================================
+    glRotatef(rotationAngle, 0.0f, 0.0f, 1.0f);
 
     // ===================================================================
-    // AMBIENT ZONE (Right side)
+    // SARTHAK - CO2 SCALING
     // ===================================================================
-    // Zone characteristics:
-    // - Color: RED/ORANGE (room temperature)
-    // - Position: Right (6, 1, 0)
-    // - Temperature: 25°C
+    // Apply scaling transformation (uniform on all axes)
+    // glScalef(scaleValue, scaleValue, scaleValue) zooms warehouse uniformly
+    // +/= keys: zoom in (scaleValue increases, capped at MAX_SCALE)
+    // - key: zoom out (scaleValue decreases, limited to MIN_SCALE)
+    // Scaling maintains zone proportions and warehouse structure integrity
+    // ===================================================================
+    glScalef(scaleValue, scaleValue, scaleValue);
 
-    drawCube(6, 1, 0, 3.0f, 4.0f, 3.0f,
-             1.0f, 0.5f, 0.0f);  // GL_QUADS
-
-    drawShelf(4.5f, 0, -1.5f,
-              3.0f, 3.0f, 4.0f);
-
-    drawContainer(5.5f, 0.5f, -0.5f,
-                  1.5f, 1.5f, 1.0f,
-                  1.0f, 0.5f, 0.0f, 0.9f);
-
-    drawContainer(6.5f, 0.5f, -0.5f,
-                  1.5f, 1.5f, 1.0f,
-                  1.0f, 0.5f, 0.0f, 0.85f);
-
-    drawTemperatureIndicator(6, 5, 0, 24.8f, 25.0f);
+    // Render the warehouse with all six zones
+    renderWarehouse();
 
     // ===================================================================
-    // ZONE LABELS (Rendered as text using simple geometry)
+    // ZAKI - CO2 ROTATION: TEXT ISOLATION USING MATRIX STACK
+    // ===================================================================
+    // Push current matrix state before drawing text/UI
+    // This prevents transformations from affecting on-screen labels
+    // ===================================================================
+    glPushMatrix();
+
+    // Reset transformations for text (undo translation, rotation, scaling)
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, windowWidth, windowHeight, 0, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+
+    // ===================================================================
+    // SAMARTH - CO2 INTEGRATION: DISPLAY TRANSFORMATION STATE
+    // ===================================================================
+    // Show current transformation values for real-time feedback
+    // Assists in viva demonstration of working transformations
     // ===================================================================
 
     glColor3f(1.0f, 1.0f, 1.0f);
+    
+    char infoText[256];
+    sprintf(infoText, "COLDFLOW CGL CO2 - GEOMETRIC TRANSFORMATIONS");
+    drawText(10, 20, infoText);
 
-    // Label positions
-    glRasterPos3f(-6, 5.5f, 0);
-    const char* freezer_label = "FREEZER (-20C)";
+    sprintf(infoText, "Translation: X=%.2f, Y=%.2f (W/A/S/D)", translateX, translateY);
+    drawText(10, 50, infoText);
 
-    glRasterPos3f(0, 5.5f, 0);
-    const char* chiller_label = "CHILLER (4C)";
+    sprintf(infoText, "Rotation: Z-axis=%.1f degrees (Q/E)", rotationAngle);
+    drawText(10, 80, infoText);
 
-    glRasterPos3f(6, 5.5f, 0);
-    const char* ambient_label = "AMBIENT (25C)";
+    sprintf(infoText, "Scaling: %.2fx (±=zoom, -=out)", scaleValue);
+    drawText(10, 110, infoText);
+
+    sprintf(infoText, "Selected Zone: %d (1-6=select, R=reset)", selectedZone);
+    drawText(10, 140, infoText);
+
+    // Instructions
+    glColor3f(0.8f, 0.8f, 0.8f);
+    sprintf(infoText, "W/A/S/D: Translate | Q/E: Rotate | +/-: Scale | 1-6: Select Zone | R: Reset | ESC: Exit");
+    drawText(10, windowHeight - 30, infoText);
+
+    // Restore projection matrix
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    glutSwapBuffers();
 }
 
 // ===================================================================
-// GLFW CALLBACK FUNCTIONS
+// KEYBOARD HANDLER
 // ===================================================================
 
-void handleInput() {
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        rotationAngle -= 2.0f;
+void keyboard(unsigned char key, int x, int y) {
+    // ===================================================================
+    // SAMYAK - CO2 TRANSLATION
+    // ===================================================================
+    // Handle W/S/A/D for horizontal and vertical translation
+    // W: Move up (positive Y)
+    // S: Move down (negative Y)
+    // A: Move left (negative X)
+    // D: Move right (positive X)
+    // ===================================================================
+
+    if (key == 'w' || key == 'W') {
+        translateY += 0.5f;  // Move warehouse up
+    }
+    if (key == 's' || key == 'S') {
+        translateY -= 0.5f;  // Move warehouse down
+    }
+    if (key == 'a' || key == 'A') {
+        translateX -= 0.5f;  // Move warehouse left
+    }
+    if (key == 'd' || key == 'D') {
+        translateX += 0.5f;  // Move warehouse right
     }
 
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        rotationAngle += 2.0f;
+    // ===================================================================
+    // SARTHAK - CO2 SCALING
+    // ===================================================================
+    // Handle +/- for zoom in/out
+    // +/=: Zoom in (increase scaleValue up to MAX_SCALE)
+    // -: Zoom out (decrease scaleValue down to MIN_SCALE)
+    // ===================================================================
+
+    if (key == '+' || key == '=') {
+        scaleValue += 0.1f;
+        if (scaleValue > MAX_SCALE) scaleValue = MAX_SCALE;  // Clamp to max
+    }
+    if (key == '-' || key == '_') {
+        scaleValue -= 0.1f;
+        if (scaleValue < MIN_SCALE) scaleValue = MIN_SCALE;  // Clamp to min
     }
 
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        zoomLevel *= 0.98f;
+    // ===================================================================
+    // ZAKI - CO2 ROTATION
+    // ===================================================================
+    // Handle Q/E for clockwise/anticlockwise rotation
+    // Q: Rotate anticlockwise (decrease rotationAngle)
+    // E: Rotate clockwise (increase rotationAngle)
+    // ===================================================================
+
+    if (key == 'q' || key == 'Q') {
+        rotationAngle -= 5.0f;  // Anticlockwise rotation
+        if (rotationAngle < 0) rotationAngle += 360.0f;  // Wrap around
+    }
+    if (key == 'e' || key == 'E') {
+        rotationAngle += 5.0f;  // Clockwise rotation
+        if (rotationAngle >= 360.0f) rotationAngle -= 360.0f;  // Wrap around
     }
 
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        zoomLevel *= 1.02f;
+    // ===================================================================
+    // SAMARTH - CO2 INTEGRATION
+    // ===================================================================
+    // Handle zone selection (1-6)
+    // Handle reset (R) - reset all transformations and selected zone
+    // Handle exit (ESC)
+    // ===================================================================
+
+    if (key >= '1' && key <= '6') {
+        selectedZone = key - '0';  // Select zone 1-6
     }
 
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
+    if (key == '0') {
+        selectedZone = 0;  // Deselect zone
     }
+
+    // SAMARTH - CO2 INTEGRATION: Reset transformation
+    if (key == 'r' || key == 'R') {
+        translateX = 0.0f;
+        translateY = 0.0f;
+        rotationAngle = 0.0f;
+        scaleValue = 1.0f;
+        selectedZone = 0;  // Also reset zone selection
+    }
+
+    // Exit
+    if (key == 27) {  // ESC key
+        exit(0);
+    }
+
+    glutPostRedisplay();
 }
 
 // ===================================================================
-// MAIN OPENGL INITIALIZATION AND LOOP
+// RESHAPE CALLBACK
 // ===================================================================
 
-int initWindow() {
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
-        return -1;
-    }
+void reshape(int w, int h) {
+    windowWidth = w;
+    windowHeight = h;
 
-    window = glfwCreateWindow(
-        windowWidth,
-        windowHeight,
-        "ColdFlow - OpenGL Warehouse Visualization",
-        nullptr,
-        nullptr
-    );
-
-    if (!window) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);  // Enable vsync
-
-    return 0;
+    glViewport(0, 0, w, h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45.0, (float)w / (float)h, 0.1f, 100.0f);
+    glMatrixMode(GL_MODELVIEW);
 }
 
-int main() {
+// ===================================================================
+// INITIALIZATION
+// ===================================================================
+
+void initOpenGL() {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
+    glClearColor(0.1f, 0.1f, 0.15f, 1.0f);  // Dark blue background
+
+    glMatrixMode(GL_PROJECTION);
+    gluPerspective(45.0, (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
+    glMatrixMode(GL_MODELVIEW);
+
+    // Set up lighting
+    GLfloat light_position[] = {5.0, 8.0, 5.0, 0.0};
+    GLfloat light_ambient[] = {0.2, 0.2, 0.2, 1.0};
+    GLfloat light_diffuse[] = {1.0, 1.0, 1.0, 1.0};
+
+    glLight(GL_LIGHT0, GL_POSITION, light_position);
+    glLight(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLight(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+}
+
+// ===================================================================
+// MAIN
+// ===================================================================
+
+int main(int argc, char** argv) {
     std::cout << "========================================" << std::endl;
-    std::cout << "ColdFlow OpenGL Warehouse Visualization" << std::endl;
+    std::cout << "ColdFlow OpenGL Warehouse - CGL CO2" << std::endl;
+    std::cout << "Geometric Transformations" << std::endl;
     std::cout << "========================================" << std::endl;
+    std::cout << std::endl;
 
-    if (initWindow() != 0) {
-        return 1;
-    }
+    std::cout << "TRANSFORMATION CONTROLS:" << std::endl;
+    std::cout << "  W/A/S/D   - Translate warehouse (up/down/left/right)" << std::endl;
+    std::cout << "  Q/E       - Rotate warehouse (Z-axis)" << std::endl;
+    std::cout << "  +/- / -   - Scale warehouse (zoom in/out)" << std::endl;
+    std::cout << "  1-6       - Select warehouse zone" << std::endl;
+    std::cout << "  0         - Deselect zone" << std::endl;
+    std::cout << "  R         - Reset all transformations" << std::endl;
+    std::cout << "  ESC       - Exit" << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "STUDENT ASSIGNMENTS:" << std::endl;
+    std::cout << "  Samyak Bhalerao  - TRANSLATION (W/A/S/D)" << std::endl;
+    std::cout << "  Sarthak Korde    - SCALING (+/- zoom)" << std::endl;
+    std::cout << "  Zaki Haque       - ROTATION (Q/E, matrix stack)" << std::endl;
+    std::cout << "  Samarth Tayde    - INTEGRATION & TESTING" << std::endl;
+    std::cout << std::endl;
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowSize(windowWidth, windowHeight);
+    glutCreateWindow("ColdFlow - CGL CO2 Geometric Transformations");
 
     initOpenGL();
 
-    std::cout << "Controls:" << std::endl;
-    std::cout << "  LEFT/RIGHT  - Rotate view" << std::endl;
-    std::cout << "  UP/DOWN     - Zoom in/out" << std::endl;
-    std::cout << "  ESC         - Exit" << std::endl;
-    std::cout << std::endl;
+    glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
+    glutKeyboardFunc(keyboard);
+    glutIdleFunc(glutPostRedisplay);
 
-    // Render loop
-    while (!glfwWindowShouldClose(window)) {
-        handleInput();
-        renderScene();
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    glfwTerminate();
-
-    std::cout << "Application closed." << std::endl;
+    glutMainLoop();
 
     return 0;
 }
