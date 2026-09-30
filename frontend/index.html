@@ -3,50 +3,487 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ColdFlow CO2 Operations</title>
+  <title>ColdFlow Control Center</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="#overview"><span class="brand-mark">❄</span><span>Cold<span>Flow</span></span></a>
-      <div class="sidebar-label">CO2 WORKSPACE</div>
-      <nav class="nav" aria-label="Main navigation">
-        <a class="nav-link active" href="#overview" data-view="overview"><span>▦</span>Overview</a>
+      <div class="brand-wrap">
+        <div class="brand-mark">❄</div>
+        <div class="brand-copy">
+          <span>Cold</span><strong>Flow</strong>
+        </div>
+      </div>
+      <div class="sidebar-label">OPERATIONS</div>
+      <nav class="nav">
+        <a class="nav-link active" href="#overview" data-view="overview"><span>◫</span>Overview</a>
+        <a class="nav-link" href="#cg" data-view="cg"><span>⌬</span>CG implementation</a>
+        <a class="nav-link" href="#java" data-view="java"><span>▣</span>Java implementation</a>
         <a class="nav-link" href="#batches" data-view="batches"><span>◈</span>Batch management</a>
         <a class="nav-link" href="#inventory" data-view="inventory"><span>⇄</span>Inventory flow</a>
-        <a class="nav-link" href="#zones" data-view="zones"><span>◌</span>Zone monitoring</a>
-        <a class="nav-link" href="#demo" data-view="demo"><span>⌘</span>CO2 demonstration</a>
+        <a class="nav-link" href="#zones" data-view="zones"><span>◎</span>Zone monitoring</a>
+        <a class="nav-link" href="#demo" data-view="demo"><span>✦</span>CO2 demo</a>
       </nav>
-      <div class="sidebar-footer"><div class="status-dot"></div><div><strong>System online</strong><small>Local demonstration mode</small></div></div>
+
+      <div class="sidebar-status">
+        <div class="status-dot"></div>
+        <div>
+          <strong>System Online</strong>
+          <small>Warehouse control center</small>
+        </div>
+      </div>
     </aside>
 
     <main class="content">
-      <header class="topbar"><div><p class="eyebrow">COLD-CHAIN OPERATIONS</p><h1 id="page-title">CO2 control center</h1></div><div class="topbar-actions"><span class="live-pill"><i></i> LIVE MONITORING</span><button class="icon-button" id="reset-data" title="Reset demo data">↻</button></div></header>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">COLD-CHAIN CONTROL</p>
+          <h1 id="page-title">Management system overview</h1>
+        </div>
+        <div class="top-actions">
+          <span class="live-pill"><i></i> LIVE</span>
+          <button id="reset-data" class="ghost-btn" type="button">Reset demo</button>
+        </div>
+      </header>
 
       <section class="view active" id="overview-view">
-        <div class="hero"><div><span class="hero-kicker">LINKED-LIST OPERATIONS</span><h2>Keep every record<br><em>in the right flow.</em></h2><p>Explore the ColdFlow CO2 tasks with clear inputs, visible outputs, and live validation.</p><div class="hero-actions"><button class="primary" data-go="batches">Manage batches <span>→</span></button><button class="secondary" data-go="demo">Run demonstration <span>↗</span></button></div></div><div class="hero-graphic"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-node node-a">BATCH</div><div class="hero-node node-b">ZONE</div><div class="hero-node node-c">INVENTORY</div><div class="hero-core">❄</div></div></div>
-        <div class="section-heading"><div><p class="eyebrow">AT A GLANCE</p><h3>Operational snapshot</h3></div><span class="updated">Updated just now</span></div>
-        <div class="stats-grid"><article class="stat-card accent-blue"><span class="stat-icon">◈</span><div><span class="stat-label">Tracked batches</span><strong id="stat-batches">0</strong><small>Across all storage zones</small></div></article><article class="stat-card accent-orange"><span class="stat-icon">⇄</span><div><span class="stat-label">Inventory units</span><strong id="stat-units">0</strong><small>Available quantities</small></div></article><article class="stat-card accent-green"><span class="stat-icon">◌</span><div><span class="stat-label">Normal zones</span><strong id="stat-normal">0<span class="muted-count" id="stat-total-zones"> / 0</span></strong><small>Temperature within limits</small></div></article><article class="stat-card accent-purple"><span class="stat-icon">⌘</span><div><span class="stat-label">CO2 structures</span><strong>3</strong><small>Singly · Doubly · Circular</small></div></article></div>
-        <div class="section-heading tasks-heading"><div><p class="eyebrow">TASK MODULES</p><h3>Choose a workflow</h3></div></div><div class="task-grid"><button class="task-card" data-go="batches"><span class="task-number">01</span><span class="task-symbol blue">◈</span><h4>Samyak<span>Batch management</span></h4><p>Forward-only batch records with insert, search, update, and delete operations.</p><span class="task-link">Open task →</span></button><button class="task-card" data-go="inventory"><span class="task-number">02</span><span class="task-symbol orange">⇄</span><h4>Sarthak<span>Inventory flow</span></h4><p>Browse stock forward and backward while tracking quantity changes.</p><span class="task-link">Open task →</span></button><button class="task-card" data-go="zones"><span class="task-number">03</span><span class="task-symbol green">◌</span><h4>Zaki<span>Zone monitoring</span></h4><p>Traverse zones in a loop and flag temperature exceptions instantly.</p><span class="task-link">Open task →</span></button><button class="task-card" data-go="demo"><span class="task-number">04</span><span class="task-symbol purple">⌘</span><h4>Samarth<span>CO2 demonstration</span></h4><p>See all three linked-list structures working together in one view.</p><span class="task-link">Open task →</span></button></div>
+        <div class="hero-panel">
+          <div class="hero-copy">
+            <span class="hero-kicker">OPERATIONS & CONTROL</span>
+            <h2>ColdFlow control center</h2>
+            <p>Real-time warehouse flow across CG logic, Java execution, linked-list operations, and temperature monitoring.</p>
+            <div class="hero-actions">
+              <button class="primary-btn" data-go="java">Open Java layer</button>
+              <button class="secondary-btn" data-go="cg">Open CG layer</button>
+            </div>
+          </div>
+          <div class="hero-visual">
+            <div class="glow-ring ring-one"></div>
+            <div class="glow-ring ring-two"></div>
+            <div class="node node-a">BATCH</div>
+            <div class="node node-b">ZONE</div>
+            <div class="node node-c">JAVA</div>
+            <div class="core-icon">❄</div>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <article class="stat-card blue-card">
+            <div class="stat-icon">◈</div>
+            <div>
+              <span>Tracked batches</span>
+              <strong id="stat-batches">0</strong>
+              <small>live active records</small>
+            </div>
+          </article>
+
+          <article class="stat-card orange-card">
+            <div class="stat-icon">⇄</div>
+            <div>
+              <span>Inventory units</span>
+              <strong id="stat-units">0</strong>
+              <small>available stock</small>
+            </div>
+          </article>
+
+          <article class="stat-card green-card">
+            <div class="stat-icon">◎</div>
+            <div>
+              <span>Healthy zones</span>
+              <strong id="stat-normal">0</strong>
+              <small id="stat-normal-label">/ 0 total</small>
+            </div>
+          </article>
+
+          <article class="stat-card purple-card">
+            <div class="stat-icon">✦</div>
+            <div>
+              <span>Implementation layers</span>
+              <strong>4</strong>
+              <small>CG · Java · C++ · UI</small>
+            </div>
+          </article>
+        </div>
+
+        <div class="overview-panels">
+          <section class="panel panel-large">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">SYSTEM OVERVIEW</p>
+                <h3>Warehouse execution stack</h3>
+              </div>
+            </div>
+            <div class="stack-list">
+              <div class="stack-item"><span class="dot blue"></span><div><strong>CG implementation</strong><small>Temperature control logic and signal-level monitoring</small></div></div>
+              <div class="stack-item"><span class="dot orange"></span><div><strong>Java implementation</strong><small>High-level storage, dispatch, and GUI orchestration</small></div></div>
+              <div class="stack-item"><span class="dot green"></span><div><strong>C++ logic</strong><small>Linked-list simulation and processing engine</small></div></div>
+              <div class="stack-item"><span class="dot purple"></span><div><strong>Management dashboard</strong><small>Live visual operations and worker controls</small></div></div>
+            </div>
+          </section>
+
+          <section class="panel panel-large">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">CURRENT STATUS</p>
+                <h3>Operations snapshot</h3>
+              </div>
+            </div>
+            <div class="status-blocks">
+              <div class="status-block">
+                <span>Dispatch queue</span>
+                <strong id="dispatch-q">0</strong>
+              </div>
+              <div class="status-block">
+                <span>Alerts</span>
+                <strong id="alert-count">0</strong>
+              </div>
+              <div class="status-block">
+                <span>Avg. zone temp</span>
+                <strong id="avg-temp">0.0°C</strong>
+              </div>
+            </div>
+          </section>
+        </div>
       </section>
 
-      <section class="view" id="batches-view"><div class="view-header"><div><p class="eyebrow">SAMYAK · SINGLY LINKED LIST</p><h2>Batch management</h2><p>Add, search, update, and remove cold-chain batch records.</p></div><span class="structure-badge blue-bg">FORWARD FLOW</span></div><div class="workspace-grid"><form class="panel form-panel" id="batch-form"><div class="panel-title"><div><h3>Required inputs</h3><p>Enter a new batch record</p></div><span class="input-mark">01</span></div><label>Batch ID<input name="batchId" type="number" placeholder="e.g. 101" required></label><label>Product ID<input name="productId" placeholder="e.g. P01" required></label><label>Product name<input name="productName" placeholder="e.g. MilkPack" required></label><div class="form-row"><label>Quantity<input name="quantity" type="number" min="1" placeholder="40" required></label><label>Expiry date<input name="expiryDate" type="date" required></label></div><label>Storage zone<select name="zone"><option>Zone-A</option><option>Zone-B</option><option>ColdRoom-2</option><option>Freezer</option><option>Chiller</option></select></label><button class="primary full" type="submit">Insert batch <span>→</span></button><div class="message" id="batch-message"></div></form><div class="panel output-panel"><div class="panel-title"><div><h3>Expected output</h3><p>Updated batch list and operation results</p></div><span class="output-mark">OUTPUT</span></div><div class="toolbar"><input id="batch-search" placeholder="Search by batch or product…"><button class="secondary small" id="clear-batch-search">Clear</button></div><div class="table-wrap"><table><thead><tr><th>Batch ID</th><th>Product</th><th>Qty</th><th>Expiry</th><th>Zone</th><th></th></tr></thead><tbody id="batch-table"></tbody></table></div></div></div></section>
+      <section class="view" id="cg-view">
+        <div class="view-header">
+          <div>
+            <p class="eyebrow">CG IMPLEMENTATION</p>
+            <h2>Signal / control layer</h2>
+          </div>
+          <span class="pill blue-pill">REAL-TIME CONTROL</span>
+        </div>
 
-      <section class="view" id="inventory-view"><div class="view-header"><div><p class="eyebrow">SARTHAK · DOUBLY LINKED LIST</p><h2>Inventory flow</h2><p>Track products in both directions and update quantities.</p></div><span class="structure-badge orange-bg">TWO-WAY FLOW</span></div><div class="workspace-grid"><form class="panel form-panel" id="inventory-form"><div class="panel-title"><div><h3>Required inputs</h3><p>Add an inventory item</p></div><span class="input-mark">02</span></div><label>Product ID<input name="productId" placeholder="e.g. P100" required></label><label>Batch ID<input name="batchId" type="number" placeholder="e.g. 41" required></label><label>Quantity<input name="quantity" type="number" min="0" placeholder="20" required></label><label>Storage zone<select name="zone"><option>ColdRoom-2</option><option>Zone-A</option><option>Zone-B</option><option>Freezer</option></select></label><button class="primary orange full" type="submit">Add inventory <span>→</span></button><div class="message" id="inventory-message"></div></form><div class="panel output-panel"><div class="panel-title"><div><h3>Expected output</h3><p>Forward and backward inventory lists</p></div><span class="output-mark">OUTPUT</span></div><div class="direction-actions"><button class="direction active" data-direction="forward">→ Forward traversal</button><button class="direction" data-direction="backward">← Backward traversal</button></div><div class="list-output" id="inventory-list"></div></div></div></section>
+        <div class="cg-layout">
+          <div class="panel large-panel">
+            <div class="panel-header compact">
+              <div>
+                <p class="eyebrow">TEMPERATURE CONTROL</p>
+                <h3>CG register map</h3>
+              </div>
+              <button id="cg-run" class="secondary-btn small-btn" type="button">Run cycle</button>
+            </div>
 
-      <section class="view" id="zones-view"><div class="view-header"><div><p class="eyebrow">ZAKI · CIRCULAR LINKED LIST</p><h2>Zone monitoring</h2><p>Review every zone in circular order and detect temperature alerts.</p></div><span class="structure-badge green-bg">CIRCULAR FLOW</span></div><div class="workspace-grid"><form class="panel form-panel" id="zone-form"><div class="panel-title"><div><h3>Required inputs</h3><p>Register a temperature zone</p></div><span class="input-mark">03</span></div><label>Zone ID<input name="zoneId" type="number" placeholder="e.g. 1" required></label><label>Zone name<input name="zoneName" placeholder="e.g. ColdRoomA" required></label><div class="form-row"><label>Min °C<input name="min" type="number" step="0.1" placeholder="2" required></label><label>Max °C<input name="max" type="number" step="0.1" placeholder="8" required></label></div><label>Current °C<input name="current" type="number" step="0.1" placeholder="6" required></label><button class="primary green full" type="submit">Insert zone <span>→</span></button><div class="message" id="zone-message"></div></form><div class="panel output-panel"><div class="panel-title"><div><h3>Expected output</h3><p>Circular traversal and temperature status</p></div><button class="secondary small" id="monitor-zones">Monitor now</button></div><div class="zone-list" id="zone-list"></div></div></div></section>
+            <div class="register-table">
+              <div class="register-row header-row">
+                <span>Zone</span>
+                <span>R0 Target</span>
+                <span>R1 Current</span>
+                <span>R2 Error</span>
+                <span>R3 Control</span>
+                <span>R4 Energy</span>
+              </div>
+              <div class="register-row">
+                <span>Freezer</span>
+                <span id="cg-f-r0">-20.0</span>
+                <span id="cg-f-r1">-18.5</span>
+                <span id="cg-f-r2">1.5</span>
+                <span id="cg-f-r3">ON</span>
+                <span id="cg-f-r4">12.4kWh</span>
+              </div>
+              <div class="register-row">
+                <span>Chiller</span>
+                <span id="cg-c-r0">4.0</span>
+                <span id="cg-c-r1">5.8</span>
+                <span id="cg-c-r2">-1.8</span>
+                <span id="cg-c-r3">IDLE</span>
+                <span id="cg-c-r4">8.9kWh</span>
+              </div>
+              <div class="register-row">
+                <span>Ambient</span>
+                <span id="cg-a-r0">20.0</span>
+                <span id="cg-a-r1">22.4</span>
+                <span id="cg-a-r2">-2.4</span>
+                <span id="cg-a-r3">OFF</span>
+                <span id="cg-a-r4">4.1kWh</span>
+              </div>
+            </div>
+          </div>
 
-      <section class="view" id="demo-view"><div class="view-header"><div><p class="eyebrow">SAMARTH · INTEGRATION</p><h2>CO2 demonstration</h2><p>Compare the three structures and see their outputs together.</p></div><span class="structure-badge purple-bg">INTEGRATED VIEW</span></div><div class="demo-grid"><div class="panel comparison-panel"><div class="panel-title"><div><h3>Structure comparison</h3><p>Choose the right list for the job</p></div></div><div class="compare-row"><span class="compare-icon blue">◈</span><div><strong>Singly linked list</strong><small>Sequential batch processing</small></div><b>O(n)</b></div><div class="compare-row"><span class="compare-icon orange">⇄</span><div><strong>Doubly linked list</strong><small>Forward and backward inventory</small></div><b>O(n)</b></div><div class="compare-row"><span class="compare-icon green">◌</span><div><strong>Circular linked list</strong><small>Repeated zone monitoring</small></div><b>O(n)</b></div><button class="primary purple full" id="run-demo">Run live demonstration <span>↗</span></button></div><div class="panel console-panel"><div class="console-head"><span><i></i><i></i><i></i></span><strong>co2-output</strong><span>LIVE</span></div><pre id="demo-console">Ready for demonstration…
+          <div class="panel">
+            <div class="panel-header compact">
+              <div>
+                <p class="eyebrow">VISIBILITY</p>
+                <h3>Control curve</h3>
+              </div>
+            </div>
+            <div class="mini-chart" aria-label="Temperature chart">
+              <div class="chart-line line-blue"></div>
+              <div class="chart-line line-green"></div>
+              <div class="chart-line line-orange"></div>
+            </div>
+            <div class="legend-row">
+              <span><i class="legend blue"></i>Freezer</span>
+              <span><i class="legend green"></i>Chiller</span>
+              <span><i class="legend orange"></i>Ambient</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-Select “Run live demonstration” to display
-sample inputs and expected outputs.</pre></div></div></section>
+      <section class="view" id="java-view">
+        <div class="view-header">
+          <div>
+            <p class="eyebrow">JAVA IMPLEMENTATION</p>
+            <h2>Business logic layer</h2>
+          </div>
+          <span class="pill orange-pill">MANAGEMENT LAYER</span>
+        </div>
+
+        <div class="java-grid">
+          <article class="panel java-card">
+            <div class="java-tag">Dashboard.java</div>
+            <h3>Warehouse UI shell</h3>
+            <p>Displays live temperature zones, inventory summaries, and system state updates.</p>
+            <ul>
+              <li>Zone cards</li>
+              <li>Inventory summary</li>
+              <li>Monitoring timer</li>
+            </ul>
+          </article>
+
+          <article class="panel java-card">
+            <div class="java-tag">InventoryManager.java</div>
+            <h3>Inventory operations</h3>
+            <p>Responsible for batch add/search/update/delete flows and FEFO dispatch management.</p>
+            <ul>
+              <li>FEFO heap logic</li>
+              <li>Batch indexing</li>
+              <li>Dispatch selection</li>
+            </ul>
+          </article>
+
+          <article class="panel java-card">
+            <div class="java-tag">StorageZone.java</div>
+            <h3>Temperature control</h3>
+            <p>Tracks telemetry, zone target drift, and system warnings using the CG bridge.</p>
+            <ul>
+              <li>Telemetry buffer</li>
+              <li>Target vs. current</li>
+              <li>Status states</li>
+            </ul>
+          </article>
+
+          <article class="panel java-card">
+            <div class="java-tag">CppBridge.java</div>
+            <h3>Native integration</h3>
+            <p>Connects Java to C++ processing for temperature error handling and sensor decisions.</p>
+            <ul>
+              <li>Input/output file bridge</li>
+              <li>C++ engine calls</li>
+              <li>Java orchestration</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="batches-view">
+        <div class="view-header">
+          <div>
+            <p class="eyebrow">SAMYAK · SINGLY LINKED LIST</p>
+            <h2>Batch management</h2>
+          </div>
+          <span class="pill blue-pill">FORWARD FLOW</span>
+        </div>
+
+        <div class="work-grid">
+          <form class="panel form-panel" id="batch-form">
+            <div class="panel-header compact">
+              <div>
+                <p class="eyebrow">INPUTS</p>
+                <h3>Create batch record</h3>
+              </div>
+            </div>
+            <label>Batch ID<input name="batchId" type="number" placeholder="e.g. 101" required></label>
+            <label>Product ID<input name="productId" placeholder="e.g. P01" required></label>
+            <label>Product name<input name="productName" placeholder="e.g. MilkPack" required></label>
+            <div class="two-col">
+              <label>Quantity<input name="quantity" type="number" min="1" placeholder="40" required></label>
+              <label>Expiry date<input name="expiryDate" type="date" required></label>
+            </div>
+            <label>Storage zone<select name="zone"><option>Zone-A</option><option>Zone-B</option><option>ColdRoom-2</option><option>Freezer</option><option>Chiller</option></select></label>
+            <button class="primary-btn full" type="submit">Insert batch</button>
+            <div class="message" id="batch-message"></div>
+          </form>
+
+          <div class="panel output-panel">
+            <div class="panel-header compact">
+              <div>
+                <p class="eyebrow">OUTPUT</p>
+                <h3>Batch ledger</h3>
+              </div>
+            </div>
+            <div class="search-row">
+              <input id="batch-search" placeholder="Search by batch or product…">
+              <button class="ghost-btn small-btn" id="clear-batch-search" type="button">Clear</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Batch ID</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Expiry</th>
+                    <th>Zone</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="batch-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="inventory-view">
+        <div class="view-header">
+          <div>
+            <p class="eyebrow">SARTHAK · DOUBLY LINKED LIST</p>
+            <h2>Inventory flow</h2>
+          </div>
+          <span class="pill orange-pill">TWO-WAY FLOW</span>
+        </div>
+
+        <div class="work-grid">
+          <form class="panel form-panel" id="inventory-form">
+            <div class="panel-header compact">
+              <div>
+                <p class="eyebrow">INPUTS</p>
+                <h3>Add inventory item</h3>
+              </div>
+            </div>
+            <label>Product ID<input name="productId" placeholder="e.g. P100" required></label>
+            <label>Batch ID<input name="batchId" type="number" placeholder="e.g. 41" required></label>
+            <label>Quantity<input name="quantity" type="number" min="0" placeholder="20" required></label>
+            <label>Storage zone<select name="zone"><option>ColdRoom-2</option><option>Zone-A</option><option>Zone-B</option><option>Freezer</option></select></label>
+            <button class="primary-btn orange-btn full" type="submit">Add inventory</button>
+            <div class="message" id="inventory-message"></div>
+          </form>
+
+          <div class="panel output-panel">
+            <div class="panel-header compact">
+              <div>
+                <p class="eyebrow">OUTPUT</p>
+                <h3>Inventory movement</h3>
+              </div>
+            </div>
+            <div class="direction-actions">
+              <button class="direction active" data-direction="forward" type="button">→ Forward</button>
+              <button class="direction" data-direction="backward" type="button">← Backward</button>
+            </div>
+            <div class="list-output" id="inventory-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="zones-view">
+        <div class="view-header">
+          <div>
+            <p class="eyebrow">ZAKI · CIRCULAR LINKED LIST</p>
+            <h2>Zone monitoring</h2>
+          </div>
+          <span class="pill green-pill">CIRCULAR FLOW</span>
+        </div>
+
+        <div class="work-grid">
+          <form class="panel form-panel" id="zone-form">
+            <div class="panel-header compact">
+              <div>
+                <p class="eyebrow">INPUTS</p>
+                <h3>Register zone</h3>
+              </div>
+            </div>
+            <label>Zone ID<input name="zoneId" type="number" placeholder="e.g. 1" required></label>
+            <label>Zone name<input name="zoneName" placeholder="e.g. ColdRoomA" required></label>
+            <div class="two-col">
+              <label>Min °C<input name="min" type="number" step="0.1" placeholder="2" required></label>
+              <label>Max °C<input name="max" type="number" step="0.1" placeholder="8" required></label>
+            </div>
+            <label>Current °C<input name="current" type="number" step="0.1" placeholder="6" required></label>
+            <button class="primary-btn green-btn full" type="submit">Insert zone</button>
+            <div class="message" id="zone-message"></div>
+          </form>
+
+          <div class="panel output-panel">
+            <div class="panel-header compact">
+              <div>
+                <p class="eyebrow">OUTPUT</p>
+                <h3>Zone status loop</h3>
+              </div>
+              <button id="monitor-zones" class="ghost-btn small-btn" type="button">Monitor now</button>
+            </div>
+            <div class="zone-list" id="zone-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="demo-view">
+        <div class="view-header">
+          <div>
+            <p class="eyebrow">SAMARTH · INTEGRATION</p>
+            <h2>CO2 demonstration</h2>
+          </div>
+          <span class="pill purple-pill">LIVE SUMMARY</span>
+        </div>
+
+        <div class="demo-grid">
+          <div class="panel comparison-panel">
+            <div class="panel-header compact">
+              <div>
+                <p class="eyebrow">STRUCTURE COMPARISON</p>
+                <h3>Choose the right list</h3>
+              </div>
+            </div>
+            <div class="compare-row">
+              <span class="compare-icon blue">◈</span>
+              <div>
+                <strong>Singly linked list</strong>
+                <small>Sequential batch processing</small>
+              </div>
+              <b>O(n)</b>
+            </div>
+            <div class="compare-row">
+              <span class="compare-icon orange">⇄</span>
+              <div>
+                <strong>Doubly linked list</strong>
+                <small>Inventory browse + updates</small>
+              </div>
+              <b>O(n)</b>
+            </div>
+            <div class="compare-row">
+              <span class="compare-icon green">◎</span>
+              <div>
+                <strong>Circular linked list</strong>
+                <small>Round-robin zone monitoring</small>
+              </div>
+              <b>O(n)</b>
+            </div>
+            <button id="run-demo" class="primary-btn purple-btn full" type="button">Run live demonstration</button>
+          </div>
+
+          <div class="panel console-panel">
+            <div class="console-header">
+              <div class="window-dots"><span></span><span></span><span></span></div>
+              <strong>co2-output</strong>
+              <span class="console-live">LIVE</span>
+            </div>
+            <pre id="demo-console">Ready for demonstration…
+
+Select “Run live demonstration” to inspect
+sample input and output for each linked-list layer.</pre>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
-  <div class="toast" id="toast"></div>
+
+  <div id="toast" class="toast"></div>
   <script src="app.js"></script>
 </body>
 </html>
