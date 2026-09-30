@@ -3,7 +3,7 @@
 using namespace std;
 
 // ===============================================================
-// Samyak - Singly Linked List for Batch Management
+// Samarth - Singly Linked List for Batch Management
 // ColdFlow CO2: Choose suitable type of linked list for applications
 // ===============================================================
 // Why singly linked list?
