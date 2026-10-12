@@ -1,6 +1,6 @@
 package coldflow;
 
-public class StorageZone {
+public abstract class StorageZone {
 
     protected final String zoneName;
     protected final double targetTemperature;
