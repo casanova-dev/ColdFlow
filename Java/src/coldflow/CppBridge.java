@@ -14,7 +14,11 @@ public class CppBridge {
             "cpp/output.txt";
 
     // C++ executable name because we will run it from the cpp folder
-    private static final String CPP_PROGRAM = "ColdFlowEngine.exe";
+    // Use platform-appropriate name (Windows vs Unix)
+    private static String getCppExecutableName() {
+        String os = System.getProperty("os.name").toLowerCase();
+        return os.contains("win") ? "ColdFlowEngine.exe" : "ColdFlowEngine";
+    }
 
     // Send Java data to C++
     public static void sendTemperature(
@@ -37,61 +41,66 @@ public class CppBridge {
     }
 
     // Start the C++ engine
-   public static boolean runCppEngine() {
+    public static boolean runCppEngine() {
 
-    try {
+        try {
 
-        File cppFolder =
-                new File("cpp").getAbsoluteFile();
+            File cppFolder =
+                    new File("cpp").getAbsoluteFile();
 
-        File cppExecutable =
-                new File(
-                        cppFolder,
-                        "ColdFlowEngine.exe"
-                );
+            File cppExecutable =
+                    new File(
+                            cppFolder,
+                            getCppExecutableName()
+                    );
 
-        System.out.println(
-                "C++ executable: "
-                        + cppExecutable.getAbsolutePath()
-        );
+            System.out.println(
+                    "C++ executable: "
+                            + cppExecutable.getAbsolutePath()
+            );
 
-        ProcessBuilder processBuilder =
-                new ProcessBuilder(
-                        cppExecutable.getAbsolutePath()
-                );
+            if (!cppExecutable.exists()) {
+                System.out.println("C++ executable not found: " + cppExecutable.getAbsolutePath());
+                return false;
+            }
 
-        processBuilder.directory(cppFolder);
+            ProcessBuilder processBuilder =
+                    new ProcessBuilder(
+                            cppExecutable.getAbsolutePath()
+                    );
 
-        processBuilder.inheritIO();
+            processBuilder.directory(cppFolder);
 
-        Process process =
-                processBuilder.start();
+            processBuilder.inheritIO();
 
-        int exitCode =
-                process.waitFor();
+            Process process =
+                    processBuilder.start();
 
-        return exitCode == 0;
+            int exitCode =
+                    process.waitFor();
 
-    } catch (IOException e) {
+            return exitCode == 0;
 
-        System.out.println(
-                "Error running C++ engine: "
-                        + e.getMessage()
-        );
+        } catch (IOException e) {
 
-        return false;
+            System.out.println(
+                    "Error running C++ engine: "
+                            + e.getMessage()
+            );
 
-    } catch (InterruptedException e) {
+            return false;
 
-        Thread.currentThread().interrupt();
+        } catch (InterruptedException e) {
 
-        System.out.println(
-                "C++ process was interrupted."
-        );
+            Thread.currentThread().interrupt();
 
-        return false;
+            System.out.println(
+                    "C++ process was interrupted."
+            );
+
+            return false;
+        }
     }
-}
     // Read the result produced by C++
     public static String[] readCppResult() {
 
@@ -116,13 +125,17 @@ public class CppBridge {
                      new Scanner(file)) {
 
             if (scanner.hasNextLine()) {
-                result[0] =
-                        scanner.nextLine();
+                String line = scanner.nextLine().trim();
+                if (!line.isEmpty()) {
+                    result[0] = line;
+                }
             }
 
             if (scanner.hasNextLine()) {
-                result[1] =
-                        scanner.nextLine();
+                String line = scanner.nextLine().trim();
+                if (!line.isEmpty()) {
+                    result[1] = line;
+                }
             }
 
         } catch (IOException e) {
