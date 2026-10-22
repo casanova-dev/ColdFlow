@@ -5,6 +5,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.border.*;
 import java.awt.*;
 import java.util.List;
+import java.io.IOException;
+import java.nio.file.Paths;
 
 public class Dashboard extends JFrame {
 
@@ -40,95 +42,118 @@ public class Dashboard extends JFrame {
         this.ambient = ambient;
         this.inventory = inventory;
 
-        configureDarkLookAndFeel();
+        configureLightLookAndFeel();
 
-        setTitle("COLDFlow | Smart Cold-Chain Command Center");
-        setSize(1280, 900);
-        setMinimumSize(new Dimension(1050, 760));
+        setTitle("COLDFlow | Smart Cold-Chain Warehouse");
+        setSize(1180, 850);
+        setMinimumSize(new Dimension(1000, 740));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        getContentPane().setBackground(new Color(10, 16, 30));
+        getContentPane().setBackground(BG);
 
         buildDashboard();
         startMonitoring();
     }
 
-    private static final Color BG = new Color(10, 16, 30);
-    private static final Color PANEL_BG = new Color(15, 24, 43);
-    private static final Color CARD_BG = new Color(18, 29, 51);
-    private static final Color TEXT = new Color(225, 237, 250);
-    private static final Color MUTED = new Color(164, 184, 211);
-    private static final Color CYAN = new Color(105, 210, 255);
+    // Simple, clean light theme
+    private static final Color BG = new Color(248, 250, 252);
+    private static final Color PANEL_BG = Color.WHITE;
+    private static final Color CARD_BG = Color.WHITE;
+    private static final Color TEXT = new Color(31, 41, 55);
+    private static final Color MUTED = new Color(107, 114, 128);
+    private static final Color CYAN = new Color(37, 99, 235);
 
-    private void configureDarkLookAndFeel() {
-        UIManager.put("OptionPane.background", PANEL_BG);
-        UIManager.put("Panel.background", PANEL_BG);
+    private void openSensorMonitoring() {
+
+    try {
+        SensorDataImporter importer = new SensorDataImporter();
+
+        SensorDataImporter.ImportResult result =
+                importer.importDirectory(
+                        Paths.get("data", "preprocessed"));
+
+        SensorMonitoringWindow window =
+                new SensorMonitoringWindow(result.getReadings());
+
+        window.setVisible(true);
+
+    } catch (IOException ex) {
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Unable to load the sensor dataset:\n" + ex.getMessage(),
+                "Dataset Import Error",
+                JOptionPane.ERROR_MESSAGE);
+    }
+}
+    private void configureLightLookAndFeel() {
+        UIManager.put("OptionPane.background", Color.WHITE);
+        UIManager.put("Panel.background", Color.WHITE);
         UIManager.put("OptionPane.messageForeground", TEXT);
-        UIManager.put("Button.background", new Color(25, 48, 76));
+        UIManager.put("Button.background", new Color(243, 244, 246));
         UIManager.put("Button.foreground", TEXT);
         UIManager.put("Label.foreground", TEXT);
-        UIManager.put("TextField.background", new Color(10, 18, 32));
+        UIManager.put("TextField.background", Color.WHITE);
         UIManager.put("TextField.foreground", TEXT);
-        UIManager.put("TextArea.background", new Color(10, 18, 32));
+        UIManager.put("TextArea.background", Color.WHITE);
         UIManager.put("TextArea.foreground", TEXT);
-        UIManager.put("ComboBox.background", new Color(25, 48, 76));
+        UIManager.put("ComboBox.background", Color.WHITE);
         UIManager.put("ComboBox.foreground", TEXT);
-        UIManager.put("Table.background", CARD_BG);
+        UIManager.put("Table.background", Color.WHITE);
         UIManager.put("Table.foreground", TEXT);
-        UIManager.put("Table.selectionBackground", new Color(0, 105, 160));
-        UIManager.put("Table.selectionForeground", Color.WHITE);
-        UIManager.put("Table.gridColor", new Color(42, 67, 99));
-        UIManager.put("TableHeader.background", new Color(22, 42, 67));
-        UIManager.put("TableHeader.foreground", CYAN);
+        UIManager.put("Table.selectionBackground", new Color(219, 234, 254));
+        UIManager.put("Table.selectionForeground", TEXT);
+        UIManager.put("Table.gridColor", new Color(229, 231, 235));
+        UIManager.put("TableHeader.background", new Color(243, 244, 246));
+        UIManager.put("TableHeader.foreground", TEXT);
     }
 
+    // Applies simple light styling to the inventory window and its controls.
     private void applyDarkTheme(Component component) {
-        if (component instanceof JFrame) {
-            component.setBackground(BG);
-        } else if (component instanceof JPanel) {
-            component.setBackground(PANEL_BG);
+        if (component instanceof JFrame || component instanceof JPanel) {
+            component.setBackground(Color.WHITE);
         } else if (component instanceof JLabel) {
             component.setForeground(TEXT);
         } else if (component instanceof JButton) {
             JButton button = (JButton) component;
-            button.setBackground(new Color(25, 48, 76));
+            button.setBackground(new Color(243, 244, 246));
             button.setForeground(TEXT);
             button.setFocusPainted(false);
             button.setOpaque(true);
             button.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(48, 87, 125)),
+                    BorderFactory.createLineBorder(new Color(209, 213, 219)),
                     BorderFactory.createEmptyBorder(7, 12, 7, 12)));
         } else if (component instanceof JTextArea) {
-            component.setBackground(new Color(10, 18, 32));
+            component.setBackground(Color.WHITE);
             component.setForeground(TEXT);
             ((JTextArea) component).setCaretColor(CYAN);
         } else if (component instanceof JTextField) {
-            component.setBackground(new Color(10, 18, 32));
+            component.setBackground(Color.WHITE);
             component.setForeground(TEXT);
             ((JTextField) component).setCaretColor(CYAN);
         } else if (component instanceof JTable) {
             JTable table = (JTable) component;
-            table.setBackground(CARD_BG);
+            table.setBackground(Color.WHITE);
             table.setForeground(TEXT);
-            table.setGridColor(new Color(42, 67, 99));
-            table.setSelectionBackground(new Color(0, 105, 160));
-            table.setSelectionForeground(Color.WHITE);
+            table.setGridColor(new Color(229, 231, 235));
+            table.setSelectionBackground(new Color(219, 234, 254));
+            table.setSelectionForeground(TEXT);
             table.setFillsViewportHeight(true);
-            table.setRowHeight(30);
+            table.setRowHeight(28);
             table.setShowVerticalLines(false);
             table.setIntercellSpacing(new Dimension(0, 1));
-            table.getTableHeader().setBackground(new Color(22, 42, 67));
-            table.getTableHeader().setForeground(CYAN);
+            table.getTableHeader().setBackground(new Color(243, 244, 246));
+            table.getTableHeader().setForeground(TEXT);
             table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
         } else if (component instanceof JScrollPane) {
-            component.setBackground(PANEL_BG);
-            ((JScrollPane) component).getViewport().setBackground(CARD_BG);
+            component.setBackground(Color.WHITE);
+            ((JScrollPane) component).getViewport().setBackground(Color.WHITE);
             ((JScrollPane) component).setBorder(
-                    BorderFactory.createLineBorder(new Color(42, 67, 99)));
+                    BorderFactory.createLineBorder(new Color(229, 231, 235)));
         } else if (component instanceof JViewport) {
-            component.setBackground(CARD_BG);
+            component.setBackground(Color.WHITE);
         } else if (component instanceof JComboBox) {
-            component.setBackground(new Color(25, 48, 76));
+            component.setBackground(Color.WHITE);
             component.setForeground(TEXT);
         }
 
@@ -139,171 +164,94 @@ public class Dashboard extends JFrame {
         }
     }
 
-    // =========================================================
     // BUILD DASHBOARD
     // =========================================================
 
     private void buildDashboard() {
+        setLayout(new BorderLayout(12, 12));
 
-        setLayout(new BorderLayout(14, 14));
-
-        // =====================================================
-        // HEADER
-        // =====================================================
-
-        JPanel headerPanel =
-                new JPanel(new BorderLayout(12, 8));
-        headerPanel.setBackground(new Color(15, 24, 43));
+        JPanel headerPanel = new JPanel(new BorderLayout(12, 8));
+        headerPanel.setBackground(Color.WHITE);
         headerPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(35, 68, 105)),
-                BorderFactory.createEmptyBorder(14, 18, 14, 18)));
+                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(229, 231, 235)),
+                BorderFactory.createEmptyBorder(12, 18, 12, 18)));
 
-        JLabel title =
-                new JLabel(
-                        "COLDFlow  /  COLD-CHAIN COMMAND CENTER",
-                        SwingConstants.CENTER
-                );
+        JLabel title = new JLabel("COLDFlow | Smart Cold-Chain Warehouse");
+        title.setFont(new Font("SansSerif", Font.BOLD, 22));
+        title.setForeground(new Color(37, 99, 235));
+        headerPanel.add(title, BorderLayout.CENTER);
 
-        title.setFont(
-                new Font("SansSerif", Font.BOLD, 23)
-        );
+        JButton inventoryButton = new JButton("Inventory");
+        styleDashboardButton(inventoryButton, true);
+        inventoryButton.addActionListener(e -> showInventoryWindow());
 
-        title.setForeground(new Color(105, 210, 255));
-        title.setHorizontalAlignment(SwingConstants.LEFT);
-        headerPanel.add(
-                title,
-                BorderLayout.CENTER
-        );
+        JButton sensorButton = new JButton("Sensor Monitoring");
+        styleDashboardButton(sensorButton, false);
+        sensorButton.addActionListener(e -> openSensorMonitoring());
 
-        JButton inventoryButton =
-                new JButton("Inventory");
+        JButton exitButton = new JButton("Exit");
+        styleDashboardButton(exitButton, false);
+        exitButton.addActionListener(e -> {
+            int choice = JOptionPane.showConfirmDialog(
+                    this, "Are you sure you want to exit COLDFlow?",
+                    "Exit COLDFlow", JOptionPane.YES_NO_OPTION);
+            if (choice == JOptionPane.YES_OPTION) {
+                dispose();
+                System.exit(0);
+            }
+        });
 
-        inventoryButton.setFont(new Font("SansSerif", Font.BOLD, 13));
-        inventoryButton.setBackground(new Color(0, 151, 210));
-        inventoryButton.setForeground(Color.WHITE);
-        inventoryButton.setFocusPainted(false);
-        inventoryButton.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(66, 196, 255), 1),
-                BorderFactory.createEmptyBorder(9, 18, 9, 18)));
-
-        inventoryButton.addActionListener(
-                e -> showInventoryWindow()
-        );
-
-        JPanel buttonPanel =
-                new JPanel(
-                        new FlowLayout(
-                                FlowLayout.RIGHT,
-                                15,
-                                8
-                        )
-                );
-
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 2));
+        buttonPanel.setBackground(Color.WHITE);
         buttonPanel.add(inventoryButton);
+        buttonPanel.add(sensorButton);
+        buttonPanel.add(exitButton);
+        headerPanel.add(buttonPanel, BorderLayout.EAST);
+        add(headerPanel, BorderLayout.NORTH);
 
-        headerPanel.add(
-                buttonPanel,
-                BorderLayout.EAST
-        );
+        JPanel mainPanel = new JPanel(new BorderLayout(12, 12));
+        mainPanel.setBackground(BG);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(4, 16, 16, 16));
 
-        add(
-                headerPanel,
-                BorderLayout.NORTH
-        );
+        JPanel zonePanel = new JPanel(new GridLayout(1, 3, 12, 12));
+        zonePanel.setBackground(BG);
+        zonePanel.add(createZoneCard(
+                freezer.getZoneName(), freezer.getTargetTemperature(), "Freezer"));
+        zonePanel.add(createZoneCard(
+                chiller.getZoneName(), chiller.getTargetTemperature(), "Chiller"));
+        zonePanel.add(createZoneCard(
+                ambient.getZoneName(), ambient.getTargetTemperature(), "Ambient"));
+        mainPanel.add(zonePanel, BorderLayout.NORTH);
 
-        // =====================================================
-        // MAIN PANEL
-        // =====================================================
-
-        JPanel mainPanel =
-                new JPanel(new BorderLayout(14, 14));
-        mainPanel.setBackground(new Color(10, 16, 30));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 14, 14, 14));
-
-        // =====================================================
-        // ZONE CARDS
-        // =====================================================
-
-        JPanel zonePanel =
-                new JPanel(
-                        new GridLayout(1, 3, 14, 14)
-                );
-
-        zonePanel.add(
-                createZoneCard(
-                        freezer.getZoneName(),
-                        freezer.getTargetTemperature(),
-                        "Freezer"
-                )
-        );
-
-        zonePanel.add(
-                createZoneCard(
-                        chiller.getZoneName(),
-                        chiller.getTargetTemperature(),
-                        "Chiller"
-                )
-        );
-
-        zonePanel.add(
-                createZoneCard(
-                        ambient.getZoneName(),
-                        ambient.getTargetTemperature(),
-                        "Ambient"
-                )
-        );
-
-        mainPanel.add(
-                zonePanel,
-                BorderLayout.NORTH
-        );
-
-        // =====================================================
-        // GRAPH
-        // =====================================================
-
-        graphPanel =
-                new TemperatureGraphPanel();
-
-        graphPanel.setBackground(new Color(15, 24, 43));
+        graphPanel = new TemperatureGraphPanel();
+        graphPanel.setBackground(Color.WHITE);
         graphPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(35, 68, 105)),
-                " LIVE TEMPERATURE TELEMETRY  /  CG VISUALIZATION ",
+                BorderFactory.createLineBorder(new Color(229, 231, 235)),
+                " Temperature Over Time ",
                 TitledBorder.LEADING, TitledBorder.TOP,
                 new Font("SansSerif", Font.BOLD, 13),
-                new Color(105, 210, 255)));
+                new Color(37, 99, 235)));
+        mainPanel.add(graphPanel, BorderLayout.CENTER);
 
-        mainPanel.add(
-                graphPanel,
-                BorderLayout.CENTER
-        );
-
-        // =====================================================
-        // BOTTOM PANEL
-        // =====================================================
-
-        JPanel bottomPanel =
-                new JPanel(
-                        new GridLayout(
-                                1,
-                                2,
-                                10,
-                                10
-                        )
-                );
-
+        JPanel bottomPanel = new JPanel(new GridLayout(1, 2, 12, 12));
+        bottomPanel.setBackground(BG);
         bottomPanel.add(createCOAPanel());
         bottomPanel.add(createInventorySummaryPanel());
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
-        mainPanel.add(
-                bottomPanel,
-                BorderLayout.SOUTH
-        );
+        add(mainPanel, BorderLayout.CENTER);
+    }
 
-        add(
-                mainPanel,
-                BorderLayout.CENTER
-        );
+    private void styleDashboardButton(JButton button, boolean primary) {
+        button.setFont(new Font("SansSerif", Font.BOLD, 12));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+        button.setBackground(primary ? new Color(37, 99, 235) : new Color(243, 244, 246));
+        button.setForeground(primary ? Color.WHITE : TEXT);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(primary
+                        ? new Color(37, 99, 235) : new Color(209, 213, 219)),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)));
     }
 
     // =========================================================
@@ -316,14 +264,14 @@ public class Dashboard extends JFrame {
             String zoneType) {
 
         JPanel panel = new JPanel(new BorderLayout(8, 8));
-        panel.setBackground(new Color(18, 29, 51));
+        panel.setBackground(Color.WHITE);
         Color zoneAccent = zoneType.equals("Freezer")
                 ? new Color(64, 170, 255)
                 : zoneType.equals("Chiller")
                     ? new Color(53, 220, 190)
                     : new Color(255, 174, 74);
         panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(42, 67, 99), 1),
+                BorderFactory.createLineBorder(new Color(229, 231, 235), 1),
                 BorderFactory.createTitledBorder(
                         BorderFactory.createEmptyBorder(8, 8, 8, 8),
                         "  " + zoneName.toUpperCase() + "  ",
@@ -379,11 +327,11 @@ public class Dashboard extends JFrame {
             ambientStatus = status;
         }
 
-        target.setForeground(new Color(164, 184, 211));
-        current.setForeground(new Color(235, 246, 255));
+        target.setForeground(new Color(107, 114, 128));
+        current.setForeground(new Color(31, 41, 55));
         status.setForeground(new Color(91, 222, 168));
         JPanel information = new JPanel(new GridLayout(3, 1, 4, 4));
-        information.setBackground(new Color(18, 29, 51));
+        information.setBackground(Color.WHITE);
 
         information.add(target);
         information.add(current);
@@ -413,12 +361,12 @@ public class Dashboard extends JFrame {
                         )
                 );
 
-        panel.setBackground(new Color(18, 29, 51));
+        panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(42, 67, 99)),
-                " COA CONTROL REGISTERS ", TitledBorder.LEADING,
+                BorderFactory.createLineBorder(new Color(229, 231, 235)),
+                " COA Control Registers ", TitledBorder.LEADING,
                 TitledBorder.TOP, new Font("SansSerif", Font.BOLD, 12),
-                new Color(105, 210, 255)));
+                new Color(37, 99, 235)));
 
         freezerCOA = new JLabel();
         chillerCOA = new JLabel();
@@ -448,12 +396,12 @@ public class Dashboard extends JFrame {
                         new BorderLayout()
                 );
 
-        panel.setBackground(new Color(18, 29, 51));
+        panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(42, 67, 99)),
-                " INVENTORY SNAPSHOT ", TitledBorder.LEADING,
+                BorderFactory.createLineBorder(new Color(229, 231, 235)),
+                " Inventory Summary ", TitledBorder.LEADING,
                 TitledBorder.TOP, new Font("SansSerif", Font.BOLD, 12),
-                new Color(105, 210, 255)));
+                new Color(37, 99, 235)));
 
         JTextArea text =
                 new JTextArea();
@@ -522,8 +470,8 @@ public class Dashboard extends JFrame {
                 );
 
         inventoryFrame.setSize(
-                1000,
-                620
+                920,
+                580
         );
 
         inventoryFrame.setLocationRelativeTo(this);
@@ -531,6 +479,7 @@ public class Dashboard extends JFrame {
         inventoryFrame.setLayout(
                 new BorderLayout(10, 10)
         );
+        inventoryFrame.getContentPane().setBackground(Color.WHITE);
 
         // =====================================================
         // TITLE
@@ -1536,7 +1485,7 @@ public class Dashboard extends JFrame {
             super.paintComponent(g);
 
             Graphics2D g2 = (Graphics2D) g.create();
-            g2.setColor(new Color(15, 24, 43));
+            g2.setColor(Color.WHITE);
             g2.fillRect(0, 0, getWidth(), getHeight());
 
             g2.setRenderingHint(
@@ -1563,11 +1512,43 @@ public class Dashboard extends JFrame {
             int graphHeight =
                     height - top - bottom;
 
-            double minTemp =
-                    -25.0;
+            // Scale the chart to the actual temperatures currently in the buffers.
+            double minTemp = Double.POSITIVE_INFINITY;
+            double maxTemp = Double.NEGATIVE_INFINITY;
 
-            double maxTemp =
-                    30.0;
+            CircularBuffer[] temperatureBuffers = {
+                    freezer.getTelemetryBuffer(),
+                    chiller.getTelemetryBuffer(),
+                    ambient.getTelemetryBuffer()
+            };
+
+            for (CircularBuffer buffer : temperatureBuffers) {
+                if (buffer == null) {
+                    continue;
+                }
+                for (int i = 0; i < buffer.size(); i++) {
+                    TemperatureReading reading =
+                            (TemperatureReading) buffer.get(i);
+                    double value = reading.getTemperature();
+                    minTemp = Math.min(minTemp, value);
+                    maxTemp = Math.max(maxTemp, value);
+                }
+            }
+
+            if (!Double.isFinite(minTemp) || !Double.isFinite(maxTemp)) {
+                minTemp = -25.0;
+                maxTemp = 30.0;
+            } else {
+                double span = maxTemp - minTemp;
+                double margin = Math.max(2.0, span * 0.10);
+                minTemp -= margin;
+                maxTemp += margin;
+                if (maxTemp - minTemp < 10.0) {
+                    double extra = (10.0 - (maxTemp - minTemp)) / 2.0;
+                    minTemp -= extra;
+                    maxTemp += extra;
+                }
+            }
 
             // =================================================
             // GRAPH TITLE
@@ -1581,8 +1562,8 @@ public class Dashboard extends JFrame {
                     )
             );
 
-            g2.setColor(new Color(105, 210, 255));
-            g2.drawString("LIVE TEMPERATURE MONITORING", left, 43);
+            g2.setColor(new Color(31, 41, 55));
+            g2.drawString("Temperature Monitoring", left, 43);
 
             // =================================================
             // GRID AND Y VALUES
@@ -1596,34 +1577,18 @@ public class Dashboard extends JFrame {
                     )
             );
 
-            g2.setColor(new Color(151, 174, 203));
-            for (
-                    int temperature = -25;
-                    temperature <= 30;
-                    temperature += 5) {
+            g2.setColor(new Color(107, 114, 128));
+            int gridSteps = 6;
+            for (int step = 0; step <= gridSteps; step++) {
+                double temperature = maxTemp
+                        - (step * (maxTemp - minTemp) / gridSteps);
+                int y = top + (int) (step * graphHeight / (double) gridSteps);
 
-                int y =
-                        top
-                                + (int) (
-                                (maxTemp - temperature)
-                                        / (maxTemp - minTemp)
-                                        * graphHeight
-                        );
+                g2.setColor(new Color(229, 231, 235));
+                g2.drawLine(left, y, width - right, y);
 
-                g2.setColor(new Color(38, 58, 83));
-                g2.drawLine(
-                        left,
-                        y,
-                        width - right,
-                        y
-                );
-
-                g2.setColor(new Color(164, 184, 211));
-                g2.drawString(
-                        temperature + " °C",
-                        25,
-                        y + 5
-                );
+                g2.setColor(new Color(107, 114, 128));
+                g2.drawString(String.format("%.1f °C", temperature), 25, y + 5);
             }
 
             // =================================================
@@ -1631,7 +1596,7 @@ public class Dashboard extends JFrame {
             // =================================================
 
             g2.setFont(new Font("SansSerif", Font.BOLD, 12));
-            g2.setColor(new Color(164, 184, 211));
+            g2.setColor(new Color(107, 114, 128));
 
             g2.drawLine(
                     left,
@@ -1858,7 +1823,7 @@ public class Dashboard extends JFrame {
                     legendY
             );
 
-            g2.setColor(new Color(164, 184, 211));
+            g2.setColor(new Color(107, 114, 128));
             g2.dispose();
         }
 
