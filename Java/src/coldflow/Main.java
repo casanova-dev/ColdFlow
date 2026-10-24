@@ -25,47 +25,26 @@ public class Main {
         // =========================================
         // RUNTIME POLYMORPHISM
         // =========================================
-        // A StorageZone reference can refer to
-        // different child-class objects.
 
         StorageZone zone;
 
         zone = freezer;
-
-        System.out.println(
-                "\nRuntime Polymorphism: "
-                        + zone.getZoneName()
-        );
+        System.out.println("\nRuntime Polymorphism: " + zone.getZoneName());
 
         zone = chiller;
-
-        System.out.println(
-                "Runtime Polymorphism: "
-                        + zone.getZoneName()
-        );
+        System.out.println("Runtime Polymorphism: " + zone.getZoneName());
 
         zone = ambient;
-
-        System.out.println(
-                "Runtime Polymorphism: "
-                        + zone.getZoneName()
-        );
+        System.out.println("Runtime Polymorphism: " + zone.getZoneName());
 
         // =========================================
         // HYBRID INHERITANCE DEMONSTRATION
         // =========================================
-        // FreezerZone inherits through a class
-        // hierarchy and implements multiple interfaces.
 
-        TemperatureControl temperatureControl =
-                freezer;
+        TemperatureControl temperatureControl = freezer;
+        InventoryAware inventoryAware = freezer;
 
-        InventoryAware inventoryAware =
-                freezer;
-
-        System.out.println(
-                "\n===== HYBRID INHERITANCE DEMO ====="
-        );
+        System.out.println("\n===== HYBRID INHERITANCE DEMO =====");
 
         System.out.println(
                 "Temperature Control Interface: "
@@ -75,87 +54,159 @@ public class Main {
         inventoryAware.displayInventoryStatus();
 
         // =========================================
-        // Create Inventory
+        // CREATE INVENTORY
         // =========================================
 
-        InventoryManager inventory =
-                new InventoryManager();
+        InventoryManager inventory = new InventoryManager();
+
+        LocalDate today = LocalDate.now();
 
         // =========================================
-        // Freezer inventory
+        // FREEZER INVENTORY
         // =========================================
 
-        inventory.addBatch(
-                new Batch(
-                        "B001",
-                        "Frozen Peas",
-                        50,
-                        LocalDate.of(2026, 8, 28),
-                        "Freezer"
-                )
+        inventory.addBatch(new Batch(
+                "B001",
+                "Frozen Peas",
+                50,
+                today.plusDays(120),
+                "Freezer"
+        ));
+
+        inventory.addBatch(new Batch(
+                "B005",
+                "Ice Cream",
+                6,
+                today.plusDays(27),
+                "Freezer"
+        ));
+
+        inventory.addBatch(new Batch(
+                "B006",
+                "Frozen Chicken",
+                20,
+                today.plusDays(150),
+                "Freezer"
+        ));
+
+        inventory.addBatch(new Batch(
+                "B007",
+                "Frozen Fish",
+                18,
+                today.plusDays(180),
+                "Freezer"
+        ));
+
+        // =========================================
+        // CHILLER INVENTORY
+        // =========================================
+
+        inventory.addBatch(new Batch(
+                "B002",
+                "Yogurt",
+                30,
+                today.plusDays(4),
+                "Chiller"
+        ));
+
+        inventory.addBatch(new Batch(
+                "B004",
+                "Milk",
+                40,
+                today.minusDays(2),
+                "Chiller"
+        ));
+
+        inventory.addBatch(new Batch(
+                "B008",
+                "Fresh Paneer",
+                8,
+                today.plusDays(2),
+                "Chiller"
+        ));
+
+        inventory.addBatch(new Batch(
+                "B009",
+                "Butter",
+                30,
+                today.plusDays(75),
+                "Chiller"
+        ));
+
+        inventory.addBatch(new Batch(
+                "B010",
+                "Fresh Cream",
+                5,
+                today,
+                "Chiller"
+        ));
+
+        inventory.addBatch(new Batch(
+                "B011",
+                "Cheese",
+                9,
+                today.plusDays(45),
+                "Chiller"
+        ));
+
+        inventory.addBatch(new Batch(
+                "B012",
+                "Orange Juice",
+                0,
+                today.plusDays(12),
+                "Chiller"
+        ));
+
+        // =========================================
+        // AMBIENT INVENTORY
+        // =========================================
+
+        inventory.addBatch(new Batch(
+                "B003",
+                "Bananas",
+                20,
+                today.plusDays(10),
+                "Ambient"
+        ));
+
+        inventory.addBatch(new Batch(
+                "B013",
+                "Apples",
+                50,
+                today.plusDays(25),
+                "Ambient"
+        ));
+
+        // =========================================
+        // DISPLAY INITIAL INVENTORY
+        // =========================================
+
+        System.out.println("\n===== INITIAL INVENTORY =====");
+
+        inventory.displayInventory();
+
+        System.out.println(
+                "\nTotal batches loaded: "
+                        + inventory.getBatchCount()
         );
 
         // =========================================
-        // Chiller inventory
-        // =========================================
-
-        inventory.addBatch(
-                new Batch(
-                        "B002",
-                        "Yogurt",
-                        30,
-                        LocalDate.of(2026, 8, 25),
-                        "Chiller"
-                )
-        );
-
-        // =========================================
-        // Ambient inventory
-        // =========================================
-
-        inventory.addBatch(
-                new Batch(
-                        "B003",
-                        "Bananas",
-                        20,
-                        LocalDate.of(2026, 9, 2),
-                        "Ambient"
-                )
-        );
-
-        // =========================================
-        // Another Chiller batch
-        // =========================================
-
-        inventory.addBatch(
-                new Batch(
-                        "B004",
-                        "Milk",
-                        40,
-                        LocalDate.of(2026, 8, 30),
-                        "Chiller"
-                )
-        );
-
-        // =========================================
-        // Start Dashboard
+        // START DASHBOARD
         // =========================================
 
         javax.swing.SwingUtilities.invokeLater(() -> {
 
-            Dashboard dashboard =
-                    new Dashboard(
-                            freezer,
-                            chiller,
-                            ambient,
-                            inventory
-                    );
+            Dashboard dashboard = new Dashboard(
+                    freezer,
+                    chiller,
+                    ambient,
+                    inventory
+            );
 
             dashboard.setVisible(true);
         });
 
-        System.out.println(
-                "\nCOLDFlow dashboard started."
-        );
+        System.out.println("\nCOLDFlow dashboard started.");
     }
 }
+

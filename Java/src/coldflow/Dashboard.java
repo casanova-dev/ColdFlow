@@ -5,6 +5,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.border.*;
 import java.awt.*;
 import java.util.List;
+import java.time.LocalDate;
 import java.io.IOException;
 import java.nio.file.Paths;
 
@@ -599,6 +600,15 @@ public class Dashboard extends JFrame {
         JButton dispatchButton =
                 new JButton("Dispatch Next Batch (FEFO)");
 
+        JButton expiryButton =
+                new JButton("Expiry Alerts");
+
+        JButton lowStockButton =
+                new JButton("Low-Stock Alerts");
+
+        JButton outOfStockButton =
+                new JButton("Out-of-Stock Alerts");
+
         JButton refreshButton =
                 new JButton("Refresh");
 
@@ -674,6 +684,24 @@ public class Dashboard extends JFrame {
         );
 
         // =====================================================
+        // EXPIRY ALERTS
+        // =====================================================
+
+        expiryButton.addActionListener(e -> showExpiryAlerts());
+
+        // =====================================================
+        // LOW-STOCK ALERTS
+        // =====================================================
+
+        lowStockButton.addActionListener(e -> showLowStockAlerts());
+
+        // =====================================================
+        // OUT-OF-STOCK ALERTS
+        // =====================================================
+
+        outOfStockButton.addActionListener(e -> showOutOfStockAlerts());
+
+        // =====================================================
         // REFRESH
         // =====================================================
 
@@ -698,6 +726,9 @@ public class Dashboard extends JFrame {
         buttonPanel.add(updateButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(dispatchButton);
+        buttonPanel.add(expiryButton);
+        buttonPanel.add(lowStockButton);
+        buttonPanel.add(outOfStockButton);
         buttonPanel.add(refreshButton);
         buttonPanel.add(closeButton);
 
@@ -1224,11 +1255,18 @@ public class Dashboard extends JFrame {
             return;
         }
 
-        Batch next =
-                inventory.getNextBatch();
+        // Preview the earliest-expiring batch that is not expired
+        // and still has stock. This must match InventoryManager's
+        // protected FEFO dispatch selection.
+        Batch next = getNextEligibleBatchForDisplay();
 
         if (next == null) {
-
+            JOptionPane.showMessageDialog(
+                    this,
+                    "No unexpired batch with available stock can be dispatched.",
+                    "FEFO Dispatch",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
             return;
         }
 
@@ -1275,6 +1313,136 @@ public class Dashboard extends JFrame {
                     JOptionPane.ERROR_MESSAGE
             );
         }
+    }
+
+    // =========================================================
+    // FIND NEXT ELIGIBLE BATCH FOR FEFO PREVIEW
+    // =========================================================
+
+    private Batch getNextEligibleBatchForDisplay() {
+
+        LocalDate today = LocalDate.now();
+        Batch earliest = null;
+
+        for (Batch batch : inventory.getAllBatches()) {
+
+            if (batch == null || batch.getQuantity() <= 0) {
+                continue;
+            }
+
+            LocalDate expiryDate = batch.getExpiryDate();
+
+            if (expiryDate == null || expiryDate.isBefore(today)) {
+                continue;
+            }
+
+            if (earliest == null || batch.compareTo(earliest) < 0) {
+                earliest = batch;
+            }
+        }
+
+        return earliest;
+    }
+
+    // =========================================================
+    // EXPIRY ALERTS: EXPIRED + EXPIRING SOON
+    // Requires the corresponding methods in InventoryManager.
+    // =========================================================
+
+    private void showExpiryAlerts() {
+
+        List<Batch> expired = inventory.getExpiredBatches();
+        List<Batch> expiringSoon = inventory.getBatchesExpiringSoon();
+
+        StringBuilder message = new StringBuilder();
+        message.append("EXPIRY ALERTS\n\n");
+        message.append("Expired batches: ").append(expired.size()).append("\n");
+
+        if (expired.isEmpty()) {
+            message.append("  None\n");
+        } else {
+            for (Batch batch : expired) {
+                message.append("  [EXPIRED] ").append(batch).append("\n");
+            }
+        }
+
+        message.append("\nExpiring within 7 days: ")
+                .append(expiringSoon.size()).append("\n");
+
+        if (expiringSoon.isEmpty()) {
+            message.append("  None\n");
+        } else {
+            for (Batch batch : expiringSoon) {
+                message.append("  [EXPIRING SOON] ").append(batch).append("\n");
+            }
+        }
+
+        showScrollableMessage(message.toString(), "Expiry Alerts");
+    }
+
+    // =========================================================
+    // LOW-STOCK ALERTS
+    // =========================================================
+
+    private void showLowStockAlerts() {
+
+        List<Batch> lowStock = inventory.getLowStockBatches();
+        StringBuilder message = new StringBuilder("LOW-STOCK ALERTS\n\n");
+        message.append("Low-stock batches (quantity 1-10): ")
+                .append(lowStock.size()).append("\n\n");
+
+        if (lowStock.isEmpty()) {
+            message.append("No low-stock batches.");
+        } else {
+            for (Batch batch : lowStock) {
+                message.append("[LOW STOCK] ").append(batch).append("\n");
+            }
+        }
+
+        showScrollableMessage(message.toString(), "Low-Stock Alerts");
+    }
+
+    // =========================================================
+    // OUT-OF-STOCK ALERTS
+    // =========================================================
+
+    private void showOutOfStockAlerts() {
+
+        List<Batch> outOfStock = inventory.getOutOfStockBatches();
+        StringBuilder message = new StringBuilder("OUT-OF-STOCK ALERTS\n\n");
+        message.append("Out-of-stock batches: ")
+                .append(outOfStock.size()).append("\n\n");
+
+        if (outOfStock.isEmpty()) {
+            message.append("No out-of-stock batches.");
+        } else {
+            for (Batch batch : outOfStock) {
+                message.append("[OUT OF STOCK] ").append(batch).append("\n");
+            }
+        }
+
+        showScrollableMessage(message.toString(), "Out-of-Stock Alerts");
+    }
+
+    // Display long alert lists in a scrollable dialog.
+    private void showScrollableMessage(String content, String title) {
+
+        JTextArea area = new JTextArea(content);
+        area.setEditable(false);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        area.setCaretPosition(0);
+
+        JScrollPane scrollPane = new JScrollPane(area);
+        scrollPane.setPreferredSize(new Dimension(760, 380));
+
+        JOptionPane.showMessageDialog(
+                this,
+                scrollPane,
+                title,
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
     // =========================================================
