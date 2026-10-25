@@ -58,10 +58,7 @@ public class Dashboard extends JFrame {
 
     // Simple, clean light theme
     private static final Color BG = new Color(248, 250, 252);
-    private static final Color PANEL_BG = Color.WHITE;
-    private static final Color CARD_BG = Color.WHITE;
     private static final Color TEXT = new Color(31, 41, 55);
-    private static final Color MUTED = new Color(107, 114, 128);
     private static final Color CYAN = new Color(37, 99, 235);
 
     private void openSensorMonitoring() {

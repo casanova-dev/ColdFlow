@@ -27,8 +27,6 @@ private static final DateTimeFormatter DATE_FORMAT =
 private static final DateTimeFormatter TIME_FORMAT =
         DateTimeFormatter.ofPattern("HH:mm:ss");
 
-private static final int EXPECTED_SENSOR_COUNT = 9;
-
 public static class ImportResult {
 
     private final List<SensorDatasetReading> readings;
