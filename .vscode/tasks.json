@@ -1,27 +1,44 @@
 {
     "tasks": [
         {
-            "type": "cppbuild",
-            "label": "C/C++: g++.exe build active file",
+            "type": "process",
+            "label": "Build ColdFlow OpenGL",
             "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${file}",
+                "${workspaceFolder}\\graphics\\ColdFlowOpenGL.cpp",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${workspaceFolder}\\graphics\\ColdFlowOpenGL.exe",
+                "-lglfw3",
+                "-lopengl32",
+                "-lglu32",
+                "-lm"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}\\graphics"
             },
             "problemMatcher": [
                 "$gcc"
             ],
+            "group": "none",
+            "detail": "Build the ColdFlow OpenGL visualization"
+        },
+        {
+            "type": "process",
+            "label": "Build and run ColdFlow OpenGL",
+            "command": "${workspaceFolder}\\graphics\\ColdFlowOpenGL.exe",
+            "options": {
+                "cwd": "${workspaceFolder}\\graphics"
+            },
+            "dependsOn": "Build ColdFlow OpenGL",
+            "dependsOrder": "sequence",
+            "problemMatcher": [],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Build active C++ file"
+            "detail": "Build the visualization and launch it"
         }
     ],
     "version": "2.0.0"
