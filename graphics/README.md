@@ -13,7 +13,7 @@ This is a **genuine OpenGL implementation** (NOT Swing/AWT) that renders a real-
 
 ### 1. **GL_QUADS** - Quadrilateral Faces
 
-**Purpose:** Draw rectangular surfaces (boxes, walls, floor)
+**Purpose:** Draw rectangular surfaces (containers, walls, floor) and container faces
 
 **Implementation in ColdFlow:**
 ```cpp
@@ -28,27 +28,18 @@ glEnd();
 
 **Vertices Requirement:** Exactly 4 vertices per quad
 **Usage in ColdFlow:**
-- Storage zone boxes (6 faces = 6 quads each)
+- Storage zone boundaries are open wireframes drawn with `GL_LINES`
 - Warehouse floor
 - Container geometry
 - Wall boundaries
 
 **Zone Visualization:**
 ```
-FREEZER ZONE (Blue GL_QUADS)
-├─ Front face
-├─ Back face
-├─ Top face
-├─ Bottom face
-├─ Left face
-└─ Right face
-
-CHILLER ZONE (Green GL_QUADS)
-└─ [Same 6 quads, different color]
-
-AMBIENT ZONE (Orange GL_QUADS)
-└─ [Same 6 quads, different color]
+FREEZER ZONE (Blue GL_LINES wireframe)
+CHILLER ZONE (Green GL_LINES wireframe)
+AMBIENT ZONE (Orange GL_LINES wireframe)
 ```
+The open boundaries keep shelves and containers visible.
 
 ---
 
@@ -204,6 +195,7 @@ gluLookAt(0, 8, 15,    // Camera position (elevated, back view)
 ├─────────────────────────────────┤
 │ GL_LINES: Grid pattern          │
 │  (Every 2 units for reference)  │
+│ Yellow marked aisle             │
 └─────────────────────────────────┘
 Color: Dark gray (0.3, 0.3, 0.35)
 ```
@@ -222,13 +214,16 @@ Color: BLUE (0.0, 0.3, 1.0)
 Dimensions: 3×4×3 units
 
 Components:
-├─ Main box (GL_QUADS): 6 faces
-├─ Shelving (GL_LINES): 8 vertical + 8 horizontal bars
-├─ Containers (GL_QUADS): 2 containers with intensity shading
+├─ Raised color-accented platform and perimeter
+├─ Main boundary (GL_LINES): open wireframe
+├─ Three-tier shelving with diagonal bracing
+├─ Containers (GL_QUADS): 6 detailed cartons
+├─ Front placard with current/target temperature
 └─ Temperature indicator (GL_LINES + GL_TRIANGLES)
 
 Temperature: -18.5°C (Target: -20.0°C)
-Indicator Color: BLUE TRIANGLE (too cold trend)
+Indicator Color: GREEN TRIANGLE (within the 2°C threshold)
+Label: FREEZER -18.5C
 ```
 
 #### **Chiller Zone (Center)**
@@ -238,13 +233,16 @@ Color: GREEN (0.0, 0.8, 0.2)
 Dimensions: 3×4×3 units
 
 Components:
-├─ Main box (GL_QUADS): 6 faces
-├─ Shelving (GL_LINES): 8 vertical + 8 horizontal bars
-├─ Containers (GL_QUADS): 2 containers with intensity shading
+├─ Raised color-accented platform and perimeter
+├─ Main boundary (GL_LINES): open wireframe
+├─ Three-tier shelving with diagonal bracing
+├─ Containers (GL_QUADS): 6 detailed cartons
+├─ Front placard with current/target temperature
 └─ Temperature indicator (GL_LINES + GL_TRIANGLES)
 
 Temperature: 4.2°C (Target: 4.0°C)
 Indicator Color: GREEN TRIANGLE (normal)
+Label: CHILLER 4.2C
 ```
 
 #### **Ambient Zone (Right Side)**
@@ -254,13 +252,16 @@ Color: ORANGE (1.0, 0.5, 0.0)
 Dimensions: 3×4×3 units
 
 Components:
-├─ Main box (GL_QUADS): 6 faces
-├─ Shelving (GL_LINES): 8 vertical + 8 horizontal bars
-├─ Containers (GL_QUADS): 2 containers with intensity shading
+├─ Raised color-accented platform and perimeter
+├─ Main boundary (GL_LINES): open wireframe
+├─ Three-tier shelving with diagonal bracing
+├─ Containers (GL_QUADS): 6 detailed cartons
+├─ Front placard with current/target temperature
 └─ Temperature indicator (GL_LINES + GL_TRIANGLES)
 
 Temperature: 24.8°C (Target: 25.0°C)
 Indicator Color: GREEN TRIANGLE (normal)
+Label: AMBIENT 24.8C
 ```
 
 ---
@@ -304,14 +305,12 @@ glColor3f(r * intensity, g * intensity, b * intensity);
 
 ```cpp
 glEnable(GL_DEPTH_TEST);           // Enable 3D depth perception
-glEnable(GL_LIGHTING);             // Enable lighting model
-glEnable(GL_LIGHT0);               // Enable first light source
-glEnable(GL_COLOR_MATERIAL);       // Allow colors to affect materials
+glDisable(GL_LIGHTING);            // Preserve the zone colors without normals
 
 glClearColor(0.1, 0.1, 0.15, 1.0); // Background: Dark blue-gray
 
 glMatrixMode(GL_PROJECTION);
-gluPerspective(45.0, aspect, 0.1, 100.0);  // 45° field of view
+// GLM perspective projection is recalculated when the framebuffer resizes.
 
 glMatrixMode(GL_MODELVIEW);        // Ready for object transformations
 ```
@@ -352,8 +351,12 @@ LEFT ARROW  →  glRotatef(-2.0f, 0, 1, 0)   // Rotate counter-clockwise
 RIGHT ARROW →  glRotatef(+2.0f, 0, 1, 0)   // Rotate clockwise
 UP ARROW    →  zoomLevel *= 0.98f          // Zoom in (closer)
 DOWN ARROW  →  zoomLevel *= 1.02f          // Zoom out (farther)
+             Zoom is clamped to prevent clipping or losing the scene.
+W           →  Raise camera angle toward a top-down view
+S           →  Lower camera angle toward ground level
 ESC         →  glfwSetWindowShouldClose()  // Exit application
 ```
+Resizing the window updates the viewport and projection aspect ratio.
 
 ### Real-Time Response
 
@@ -434,14 +437,14 @@ cd graphics
 - **Ambient:** Orange, 25°C storage
 
 ### ✓ Geometric Primitives
-- **GL_QUADS:** Zone boxes, containers, walls, floor
-- **GL_LINES:** Shelving structures, floor grid
+- **GL_QUADS:** Container faces, walls, floor
+- **GL_LINES:** Open zone boundaries, shelving structures, floor grid
 - **GL_TRIANGLES:** Temperature indicators
 
 ### ✓ Visual Status Display
-- Real-time temperature indicators
+- Temperature indicators and labels (demo values are currently hard-coded)
 - Color-coded status (Red/Green/Blue)
-- Zone identification labels
+- Zone placards showing current and target temperature
 
 ### ✓ Interactive Controls
 - Free rotation around warehouse
@@ -451,8 +454,9 @@ cd graphics
 ### ✓ Realistic Rendering
 - 3D perspective camera
 - Depth testing for occlusion
-- Lighting model enabled
-- Smooth shading
+- Zone contents visible through open wireframe boundaries
+- Raised colored platforms, detailed multi-tier racks, and marked warehouse aisle
+- Carton label markings and temperature-status placards
 
 ---
 
