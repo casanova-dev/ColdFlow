@@ -4,8 +4,13 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Main {
+
+    // CSV expiry date format: dd-MM-yyyy
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     public static void main(String[] args) {
 
@@ -18,7 +23,7 @@ public class Main {
         System.out.println("==========================================");
 
         // =========================================
-        // Create warehouse zones
+        // CREATE WAREHOUSE ZONES
         // =========================================
 
         FreezerZone freezer = new FreezerZone();
@@ -66,7 +71,8 @@ public class Main {
         // LOAD INVENTORY FROM CSV
         // =========================================
 
-        String csvPath = "Java/data/inventory/COLDFlow_Inventory_Processed.csv";
+        String csvPath =
+                "Java/data/inventory/COLDFlow_Inventory_Processed.csv";
 
         System.out.println("\n===== LOADING INVENTORY FROM CSV =====");
 
@@ -118,7 +124,7 @@ public class Main {
         try (BufferedReader reader =
                      new BufferedReader(new FileReader(filePath))) {
 
-            // Skip the CSV header
+            // Read and skip the CSV header
             String line = reader.readLine();
 
             if (line == null) {
@@ -135,7 +141,7 @@ public class Main {
                 try {
                     String[] fields = line.split(",", -1);
 
-                    // Expected columns:
+                    // Expected CSV columns:
                     // 0 Product_ID
                     // 1 Product_Name
                     // 2 Category
@@ -144,23 +150,33 @@ public class Main {
                     // 5 Expiration_Date
                     // 6 Storage_Zone
                     // 7 Reorder_Level
-                    // 8 Original_Expiration_Date
 
-                    if (fields.length < 9) {
+                    // The current CSV contains 8 columns.
+                    if (fields.length < 8) {
                         skipped++;
+
                         System.out.println(
                                 "Skipped invalid CSV row: " + line
                         );
+
                         continue;
                     }
 
                     String productName = fields[1].trim();
                     String batchId = fields[3].trim();
-                    int quantity = Integer.parseInt(fields[4].trim());
-                    LocalDate expiryDate =
-                            LocalDate.parse(fields[5].trim());
+
+                    int quantity =
+                            Integer.parseInt(fields[4].trim());
+
+                    // Parse expiry dates in dd-MM-yyyy format.
+                    LocalDate expiryDate = LocalDate.parse(
+                            fields[5].trim(),
+                            DATE_FORMATTER
+                    );
+
                     String storageZone = fields[6].trim();
 
+                    // Create a batch from the CSV record.
                     Batch batch = new Batch(
                             batchId,
                             productName,
@@ -169,19 +185,28 @@ public class Main {
                             storageZone
                     );
 
+                    // Add the batch to the inventory.
                     inventory.addBatch(batch);
+
                     loaded++;
 
                 } catch (Exception e) {
+
                     skipped++;
+
                     System.out.println(
                             "Could not load CSV row: " + line
                     );
+
                     System.out.println(
                             "Reason: " + e.getMessage()
                     );
                 }
             }
+
+            // =========================================
+            // CSV LOADING SUMMARY
+            // =========================================
 
             System.out.println("\nCSV loading completed.");
             System.out.println("Successfully loaded: " + loaded);
@@ -189,10 +214,12 @@ public class Main {
 
         } catch (IOException e) {
 
-            System.out.println("\nERROR: Could not read the inventory CSV.");
+            System.out.println(
+                    "\nERROR: Could not read the inventory CSV."
+            );
+
             System.out.println("Expected file: " + filePath);
             System.out.println("Reason: " + e.getMessage());
-
         }
     }
 }
