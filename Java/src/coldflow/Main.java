@@ -1,5 +1,8 @@
 package coldflow;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
 
 public class Main {
@@ -59,123 +62,15 @@ public class Main {
 
         InventoryManager inventory = new InventoryManager();
 
-        LocalDate today = LocalDate.now();
-
         // =========================================
-        // FREEZER INVENTORY
+        // LOAD INVENTORY FROM CSV
         // =========================================
 
-        inventory.addBatch(new Batch(
-                "B001",
-                "Frozen Peas",
-                50,
-                today.plusDays(120),
-                "Freezer"
-        ));
+        String csvPath = "Java/data/inventory/COLDFlow_Inventory_Processed.csv";
 
-        inventory.addBatch(new Batch(
-                "B005",
-                "Ice Cream",
-                6,
-                today.plusDays(27),
-                "Freezer"
-        ));
+        System.out.println("\n===== LOADING INVENTORY FROM CSV =====");
 
-        inventory.addBatch(new Batch(
-                "B006",
-                "Frozen Chicken",
-                20,
-                today.plusDays(150),
-                "Freezer"
-        ));
-
-        inventory.addBatch(new Batch(
-                "B007",
-                "Frozen Fish",
-                18,
-                today.plusDays(180),
-                "Freezer"
-        ));
-
-        // =========================================
-        // CHILLER INVENTORY
-        // =========================================
-
-        inventory.addBatch(new Batch(
-                "B002",
-                "Yogurt",
-                30,
-                today.plusDays(4),
-                "Chiller"
-        ));
-
-        inventory.addBatch(new Batch(
-                "B004",
-                "Milk",
-                40,
-                today.minusDays(2),
-                "Chiller"
-        ));
-
-        inventory.addBatch(new Batch(
-                "B008",
-                "Fresh Paneer",
-                8,
-                today.plusDays(2),
-                "Chiller"
-        ));
-
-        inventory.addBatch(new Batch(
-                "B009",
-                "Butter",
-                30,
-                today.plusDays(75),
-                "Chiller"
-        ));
-
-        inventory.addBatch(new Batch(
-                "B010",
-                "Fresh Cream",
-                5,
-                today,
-                "Chiller"
-        ));
-
-        inventory.addBatch(new Batch(
-                "B011",
-                "Cheese",
-                9,
-                today.plusDays(45),
-                "Chiller"
-        ));
-
-        inventory.addBatch(new Batch(
-                "B012",
-                "Orange Juice",
-                0,
-                today.plusDays(12),
-                "Chiller"
-        ));
-
-        // =========================================
-        // AMBIENT INVENTORY
-        // =========================================
-
-        inventory.addBatch(new Batch(
-                "B003",
-                "Bananas",
-                20,
-                today.plusDays(10),
-                "Ambient"
-        ));
-
-        inventory.addBatch(new Batch(
-                "B013",
-                "Apples",
-                50,
-                today.plusDays(25),
-                "Ambient"
-        ));
+        loadInventoryFromCSV(inventory, csvPath);
 
         // =========================================
         // DISPLAY INITIAL INVENTORY
@@ -186,8 +81,7 @@ public class Main {
         inventory.displayInventory();
 
         System.out.println(
-                "\nTotal batches loaded: "
-                        + inventory.getBatchCount()
+                "\nTotal batches loaded: " + inventory.getBatchCount()
         );
 
         // =========================================
@@ -207,6 +101,99 @@ public class Main {
         });
 
         System.out.println("\nCOLDFlow dashboard started.");
+    }
+
+    // =========================================
+    // LOAD INVENTORY FROM CSV FILE
+    // =========================================
+
+    private static void loadInventoryFromCSV(
+            InventoryManager inventory,
+            String filePath
+    ) {
+
+        int loaded = 0;
+        int skipped = 0;
+
+        try (BufferedReader reader =
+                     new BufferedReader(new FileReader(filePath))) {
+
+            // Skip the CSV header
+            String line = reader.readLine();
+
+            if (line == null) {
+                System.out.println("The CSV file is empty.");
+                return;
+            }
+
+            while ((line = reader.readLine()) != null) {
+
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                try {
+                    String[] fields = line.split(",", -1);
+
+                    // Expected columns:
+                    // 0 Product_ID
+                    // 1 Product_Name
+                    // 2 Category
+                    // 3 Batch_ID
+                    // 4 Stock_Quantity
+                    // 5 Expiration_Date
+                    // 6 Storage_Zone
+                    // 7 Reorder_Level
+                    // 8 Original_Expiration_Date
+
+                    if (fields.length < 9) {
+                        skipped++;
+                        System.out.println(
+                                "Skipped invalid CSV row: " + line
+                        );
+                        continue;
+                    }
+
+                    String productName = fields[1].trim();
+                    String batchId = fields[3].trim();
+                    int quantity = Integer.parseInt(fields[4].trim());
+                    LocalDate expiryDate =
+                            LocalDate.parse(fields[5].trim());
+                    String storageZone = fields[6].trim();
+
+                    Batch batch = new Batch(
+                            batchId,
+                            productName,
+                            quantity,
+                            expiryDate,
+                            storageZone
+                    );
+
+                    inventory.addBatch(batch);
+                    loaded++;
+
+                } catch (Exception e) {
+                    skipped++;
+                    System.out.println(
+                            "Could not load CSV row: " + line
+                    );
+                    System.out.println(
+                            "Reason: " + e.getMessage()
+                    );
+                }
+            }
+
+            System.out.println("\nCSV loading completed.");
+            System.out.println("Successfully loaded: " + loaded);
+            System.out.println("Skipped rows: " + skipped);
+
+        } catch (IOException e) {
+
+            System.out.println("\nERROR: Could not read the inventory CSV.");
+            System.out.println("Expected file: " + filePath);
+            System.out.println("Reason: " + e.getMessage());
+
+        }
     }
 }
 
