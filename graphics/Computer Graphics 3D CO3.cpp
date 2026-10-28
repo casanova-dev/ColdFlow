@@ -42,7 +42,7 @@ void wireBox(float x, float y, float z, float sx, float sy, float sz) {
     glutWireCube(1.0);
     glPopMatrix();
 }
-
+// Samyak 
 void drawRack(float x, float z) {
     // Steel uprights and shelves, all in 3D.
     glColor3f(0.58f, 0.68f, 0.78f);
