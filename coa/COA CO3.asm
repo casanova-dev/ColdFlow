@@ -42,6 +42,7 @@ cf_sub_u64:
 ; struct MulResult { uint64_t low; uint64_t high; uint64_t rflags; };
 ; void cf_mul_u64(uint64_t a, uint64_t b, MulResult *out)
 ; Unsigned product is RDX:RAX.
+// Samyak
 cf_mul_u64:
     mov r8, rdx
     mov rax, rdi
