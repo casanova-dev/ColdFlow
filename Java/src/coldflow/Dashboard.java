@@ -903,15 +903,35 @@ public class Dashboard extends JFrame {
                             zone
                     );
 
+            // InventoryManager saves the batch to Supabase first and
+            // adds it to the in-memory FEFO heap only after success.
             inventory.addBatch(batch);
 
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Batch added successfully!\n\n"
-                            + batch,
-                    "Success",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+            // Confirm that the batch actually reached the in-memory
+            // inventory before showing a success message.
+            Batch savedBatch = inventory.searchBatch(batchId);
+
+            if (savedBatch != null) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Batch added successfully to Supabase!\n\n"
+                                + savedBatch,
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+            } else {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Batch could not be saved to Supabase.\n"
+                                + "Please check the database connection, "
+                                + "batch ID and storage zone.",
+                        "Database Save Failed",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
 
         } catch (NumberFormatException ex) {
 
