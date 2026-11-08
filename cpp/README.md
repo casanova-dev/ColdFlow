@@ -25,7 +25,7 @@ SensorReading sensorArray[MAX_SENSORS];  // Fixed-size array
 ```
 
 ### Array Purpose
-- **Store historical sensor readings** for trend analysis
+- **Store sensor readings during one engine run** for trend analysis
 - **Maintain bounded memory usage** with predictable behavior
 - **Enable sensor data processing** (averaging, trend detection)
 - **Simulate circular buffer** pattern for continuous monitoring
@@ -101,10 +101,17 @@ int detectTrend() {
 4. **Detect Trend** – Compare oldest vs newest readings to identify trend
 5. **Calculate Error** – Compute difference: `error = current - target`
 6. **Determine Cooling Status**:
-   - `ON`: Error > 2.0°C (actively cooling needed)
-   - `IDLE`: 0.5°C ≤ Error ≤ 2.0°C (light cooling)
-   - `OFF`: Error ≤ 0.5°C (at target)
-   - If trend is falling, reduce cooling intensity
+   - `ON`: Error > 2.0°C
+   - `IDLE`: 0.5°C < Error ≤ 2.0°C
+   - `OFF`: Error ≤ 0.5°C
+   - If the detected trend is falling, a positive error is reduced to `IDLE`
+
+The engine currently reads only one temperature pair and exits. Its sensor
+array is therefore reset on each invocation, so trend detection reports
+`STABLE` during normal Java bridge calls. The array can demonstrate trend
+processing within a longer-running/multi-reading run, but it does not retain
+history between separate runs. The thresholds above are decision bands; the
+current implementation does not preserve cooling state between runs.
 
 ### Output Format
 **File:** `cpp/output.txt`
@@ -116,8 +123,8 @@ int detectTrend() {
 
 **Example:**
 ```
-1.5
-ON
+1.50
+IDLE
 ```
 
 ---
@@ -142,36 +149,33 @@ cd cpp
 g++ -o ColdFlowEngine ColdFlowEngine.cpp
 ```
 
-Then modify `CppBridge.java` to remove `.exe` extension if needed:
-```java
-private static final String CPP_PROGRAM = "ColdFlowEngine";
-```
+`CppBridge` already selects the executable name from the current operating
+system (`ColdFlowEngine.exe` on Windows, `ColdFlowEngine` elsewhere).
 
 ---
 
 ## Execution
 
 ### Direct Execution (Test)
-```bash
-cd cpp
-echo "-18.5" > input.txt
-echo "-20.0" >> input.txt
-./ColdFlowEngine.exe
-cat output.txt
+```powershell
+Set-Location cpp
+@("-18.5", "-20.0") | Set-Content input.txt
+.\ColdFlowEngine.exe
+Get-Content output.txt
 ```
 
 ### Integration with Java
-The Java `CppBridge` class automatically:
+Run Java from the repository root. `CppBridge`:
 1. Writes temperature data to `cpp/input.txt`
 2. Executes `ColdFlowEngine.exe` from the `cpp/` directory
 3. Reads results from `cpp/output.txt`
-4. Displays results in the Dashboard
+4. Returns the result to the Java caller; `StorageZone` uses it during its temperature cycle
 
 ---
 
 ## Test Results
 
-### Test Case 1: Below Target (Cooling Needed)
+### Test Case 1: Warmer than target (moderate error)
 **Input:**
 ```
 -18.5
@@ -180,14 +184,14 @@ The Java `CppBridge` class automatically:
 
 **Expected Output:**
 ```
-1.5
-ON
+1.50
+IDLE
 ```
 
 **Explanation:**  
 - Current: -18.5°C, Target: -20.0°C
 - Error: 1.5°C (too warm)
-- Action: Turn compressor ON
+- Action: Set cooling status to IDLE (the 1.5°C error is within the IDLE band)
 
 ### Test Case 2: At Target (No Cooling)
 **Input:**
@@ -207,7 +211,7 @@ OFF
 - Error: -0.1°C (slightly cold)
 - Action: Keep compressor OFF
 
-### Test Case 3: Falling Temperature (Reduce Cooling)
+### Test Case 3: Warmer than target (moderate error)
 **Input:**
 ```
 -19.0
@@ -222,8 +226,9 @@ IDLE
 
 **Explanation:**  
 - Current: -19.0°C, Target: -20.0°C
-- Error: 1.0°C (warm, but trend is falling)
-- Action: Light cooling or IDLE
+- Error: 1.0°C (within the IDLE band)
+- Trend: STABLE, because this invocation contains only one reading
+- Action: IDLE
 
 ---
 
@@ -236,7 +241,7 @@ CppBridge.sendTemperature()
         ↓
 cpp/input.txt (write)
         ↓
-ColdFlowEngine.exe (execute)
+ColdFlowEngine (platform-specific executable)
         ↓
 Array processing:
   - Add sensor reading
@@ -297,7 +302,7 @@ cpp/
 ## Notes
 
 - The array simulates a **circular buffer** for continuous sensor monitoring
-- **Hysteresis control** prevents rapid on/off cycling
+- **Threshold bands** classify cooling status for the current reading
 - **Trend detection** improves cooling decisions
 - C++ runs independently; Java handles orchestration
 - Output files are human-readable for debugging
