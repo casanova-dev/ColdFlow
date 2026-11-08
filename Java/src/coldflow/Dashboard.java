@@ -5,8 +5,6 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.util.List;
 import java.time.LocalDate;
-import java.io.IOException;
-import java.nio.file.Paths;
 
 public class Dashboard extends JFrame {
 
@@ -60,29 +58,61 @@ public class Dashboard extends JFrame {
     private static final Color TEXT = new Color(31, 41, 55);
     private static final Color CYAN = new Color(37, 99, 235);
 
+    private boolean sensorMonitoringLoading = false;
+
     private void openSensorMonitoring() {
+        if (sensorMonitoringLoading) {
+            return;
+        }
 
-    try {
-        SensorDataImporter importer = new SensorDataImporter();
+        sensorMonitoringLoading = true;
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-        SensorDataImporter.ImportResult result =
-                importer.importDirectory(
-                        Paths.get("data", "preprocessed"));
+        SwingWorker<List<SensorDatasetReading>, Void> worker =
+                new SwingWorker<>() {
+            @Override
+            protected List<SensorDatasetReading> doInBackground()
+                    throws Exception {
+                return new coldflow.database.SensorDatasetRepository().getAllReadings();
+            }
 
-        SensorMonitoringWindow window =
-                new SensorMonitoringWindow(result.getReadings());
+            @Override
+            protected void done() {
+                sensorMonitoringLoading = false;
+                setCursor(Cursor.getDefaultCursor());
 
-        window.setVisible(true);
+                try {
+                    List<SensorDatasetReading> readings = get();
 
-    } catch (IOException ex) {
+                    if (readings.isEmpty()) {
+                        JOptionPane.showMessageDialog(
+                                Dashboard.this,
+                                "No historical sensor readings were found in Supabase.",
+                                "No Sensor Data",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        return;
+                    }
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Unable to load the sensor dataset:\n" + ex.getMessage(),
-                "Dataset Import Error",
-                JOptionPane.ERROR_MESSAGE);
+                    SensorMonitoringWindow window =
+                            new SensorMonitoringWindow(readings);
+                    window.setVisible(true);
+
+                } catch (Exception ex) {
+                    Throwable cause = ex.getCause() == null
+                            ? ex : ex.getCause();
+
+                    JOptionPane.showMessageDialog(
+                            Dashboard.this,
+                            "Unable to load sensor readings from Supabase:\\n"
+                                    + cause.getMessage(),
+                            "Sensor Database Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+
+        worker.execute();
     }
-}
     private void configureLightLookAndFeel() {
         UIManager.put("OptionPane.background", Color.WHITE);
         UIManager.put("Panel.background", Color.WHITE);
